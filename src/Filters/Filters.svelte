@@ -10,6 +10,7 @@
 const stateStorage = Utils.getState();
 let changedParams = {test: 23};
 
+let waitingIcon = null;
 let exportButton = null;
 let content = null;
 
@@ -93,18 +94,19 @@ let currLayer = null;
 const changeLayer = (ev) => {
 	let id = ev ? ev.target.selectedOptions[0].value : null,
 		_gmx = gmxMap.layersByID[id];
+
+	waitingIcon.classList.remove('hidden');
 	if (id) {
 		getColumnStat(id).then((arr) => {
 			currLayer = filterLayers[id];
 			arr.forEach((it) => {
 				currLayer.filters[it.field].datalist = it.datalist;
 			});
-			console.log('________', currLayer, arr)
-			// arr.
+			waitingIcon.classList.add('hidden');
+			// console.log('________', currLayer, arr)
 		});
 	} else {
 		currLayer = null;
-		
 	}
 console.log('changeLayer', id, filterLayers[id], gmxMap.layersByID[id]);
 };
@@ -164,89 +166,32 @@ console.log('drawstop1', ev );
 	}
 };
 
-/*
-let reportCounts = 0; Store.reportsCount.subscribe(json => {
-	let count = json.limit - json.used;
-	reportCounts = count > 0 ? count : 0;
-});
-Utils.getReportsCount()
-
-let delynkaLayer = null;
-let kvartalLayer = null;
-const _setLayer = (id) => {
-	let it = gmxMap.layersByID[id],
-		bbox = it.getBounds();
-	// if (addDelynkaFlag !== 1) {
-		map.fitBounds(bbox);
-	// }
-	map.addLayer(it);
-	return it;
-};
-
-let delItems = null;
-Store.delItems.subscribe(value => {
- delItems = value;
- 	 console.log('delItems', delItems);
-
-});
-
-const _closeNotice = (nm) => {
-	let name = 'notice-create-report',
-		node;
-	if (!nm || nm === 0) {
-		node = document.getElementsByClassName(name)[0];
-		if (node) { node.classList.add('hidden'); }
-	}
-	if (!nm || nm > 0) {
-		node = document.getElementsByClassName(name + nm)[0];
-		if (node) { node.classList.add('hidden'); }
-	}
-};
-const fitBounds = (nm) => {
-	let arr = delItems.values[nm],
-		geo = arr[arr.length - 1],
-		bbox = L.gmxUtil.getGeometryBounds(geo),
-		latlngBbox = L.latLngBounds([[bbox.min.y, bbox.min.x], [bbox.max.y, bbox.max.x]]);
-	map.fitBounds(latlngBbox);
-	//console.log('fitBounds', nm, geo);
-};
-const toggleDelyanka = (ev) => {
-	let arr = document.getElementsByClassName('selectDelyanka'),
-		ctrlKey = ev.ctrlKey,
-		checked = ev.target.checked;
-
-	for (let i = 0, len = arr.length; i < len; i++) {
-		arr[i].checked = ctrlKey ? !arr[i].checked : checked;
-	}
-	console.log('toggleDelyanka', checked, arr);
-};
-
-let reportIsOpen = null;
-const openReport = (ev) => {
-	if (delynkaLayer) {
-		reportIsOpen = true;
-		_closeNotice();
-		// console.log('openReport', delynkaLayer);
-	}
-};
-const closeReport = (ev) => { reportIsOpen = null; };
-
-const toggleHint = (ev) => {
-	let target = ev.target,
-		name = 'notice-create-report' + (target.classList.contains('icon-report') ? '' : '1'),
-		node = document.getElementsByClassName(name)[0];
-	if (node.classList.contains('hidden')) {
-		node.classList.remove('hidden');
-	} else {
-		node.classList.add('hidden');
-	}
-};
-*/
+//let LayerID = res.content.properties.LayerID;
 const createExport = (ev) => {
 	let nodes = content.getElementsByTagName('input'),
+		id = currLayer.id,
 		str = '',
 		arr = [];
-	console.log('createExport', exportButton, content, arr.join(' , ') );
+ 
+	waitingIcon.classList.remove('hidden');
+	Requests.downloadLayer({
+		//columns: 
+		// format: 'csv',
+		// t: currLayer.id
+		format: 'csv',
+		layer: currLayer.id
+	}).then((res) => {
+		waitingIcon.classList.add('hidden');
+			//let blob = new Blob([res.res], {type: 'text/json;charset=utf-8;'});
+				//blob = new Blob([JSON.stringify(features, null, '\t')], {type: type});
+		ev.target.parentNode.setAttribute('href', window.URL.createObjectURL(res.res));
+ console.log('downloadLayer 111 ________', res);
+
+	});
+	console.log('createExport', currLayer );
+// t: F5DA3E0F4040448887353A1DB2D22234
+// format: csv
+// columns: [{"Value":"[gmx_id]","Alias":"gmx_id"},{"Value":"[Apartment]","Alias":"Apartment"},{"Value":"[CadCost]","Alias":"CadCost"},{"Value":"[Category]","Alias":"Category"},{"Value":"[Code_KLADR]","Alias":"Code_KLADR"},{"Value":"[Code_OKATO]","Alias":"Code_OKATO"},{"Value":"[DateCreate]","Alias":"DateCreate"},{"Value":"[Note]","Alias":"Note"},{"Value":"[Block_KN]","Alias":"Block_KN"},{"Value":"[SnglUseKN]","Alias":"SnglUseKN"},{"Value":"[PostalCode]","Alias":"PostalCode"},{"Value":"[Region]","Alias":"Region"},{"Value":"[Assign]","Alias":"Assign"},{"Value":"[KeyTypOns]","Alias":"KeyTypOns"}
 };
 
 const createFilterLayer = (ev) => {
@@ -256,6 +201,8 @@ const createFilterLayer = (ev) => {
 		nodes = content.getElementsByTagName('input'),
 		pars = {SourceType: 'Sql', srs: 3857},
 		arr = [];
+
+	waitingIcon.classList.remove('hidden');
 	for (let i = 0, len = nodes.length; i < len; i++) {
 		let node = nodes[i],
 			name = node.name,
@@ -266,10 +213,10 @@ const createFilterLayer = (ev) => {
 	}
 	pars.Title = 'Фильтр ' + arr.join(', ') + ' по слою "' + props.title + '"';
 	pars.styles = props.styles;
-	pars.Description = props.Description;
-	pars.Copyright = props.Copyright;
-	pars.IsRasterCatalog = false;
-	pars.TemporalLayer = false;
+	pars.Description = props.description || '';
+	pars.Copyright = props.Copyright || '';
+	// pars.IsRasterCatalog = false;
+	// pars.TemporalLayer = false;
 
 	let w = 'WHERE (' + arr.join(') AND (') + ')';
 	if (currDrawingObj) {
@@ -278,19 +225,22 @@ const createFilterLayer = (ev) => {
 	pars.Sql = 'select [geomixergeojson] as gmx_geometry, ' + currLayer.attr + ', "gmx_id" as "gmx_id" from [' + id + '] ' + w;
 
 	Requests.createFilterLayer(pars).then((res) => {
+		waitingIcon.classList.add('hidden');
 console.log('afterAll 111 ________', res);
-		let LayerID = res.content.properties.LayerID,
-			it = gmxMap.layersByID[LayerID];
-							// if (it && opt.source) {
-		it.setStyles(layer.getStyles());
-							// }
+		// let LayerID = res.content.properties.LayerID;
+		// ,
+			// it = gmxMap.layersByID[LayerID];
+		//it.setStyles(layer.getStyles());
+		// let div = $(window._queryMapLayers.buildedTree).find("div[LayerID='" + LayerID + "']")[0];
+		// div.gmxProperties.content.properties.styles = props.styles;
+		// window._mapHelper.updateMapStyles(props.styles, LayerID);
 	});
 //	console.log('createFilterLayer', exportButton, content, arr.join(' , ') );
 };
 </script>
 
 <div class="sidebar-opened" bind:this={content}>
-	<div class="row">
+	<div class="row hidden" bind:this={waitingIcon}>
 		<div class="title">Выбор слоя</div>
 		<div class="input">
 			<select on:change={changeLayer}>
@@ -331,7 +281,9 @@ console.log('afterAll 111 ________', res);
 	
 	<div class="bottom" disabled={currLayer ? false : true} bind:this={exportButton}>
 		<button class="button" on:click="{createFilterLayer}">Создать слой по фильтру</button>
+<a href='test' download='features.geojson' target='_blank'>
 		<button class="button" on:click="{createExport}">Экспорт в Excel</button>
+</a>
 	</div>
 
 </div>

@@ -59,13 +59,11 @@
 <div class="domrf-plugin-container">
 	<ul class="nav nav-tabs">
 		<li class="nav-item">
-			<a class="nav-link {tab === 'filters' ? 'active' : '-'}" href="#tab2" data-toggle="tab" on:click={toggleSidebar}>Фильтры</a>
+			<a class="nav-link {tab === 'filters' ? 'active' : '-'}" href="#tab" data-toggle="tab" on:click={toggleSidebar}>Фильтры</a>
 		</li>
 	</ul>
 
 {#if tab === 'filters'}
 	<Filters bind:openSidebar />
-{:else if tab === 'kvart'}
-{:else}
 {/if}
 </div>

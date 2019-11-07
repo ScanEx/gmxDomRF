@@ -385,7 +385,6 @@ const getColumnStat = (pars) => {
 	let hostName = pars.hostName || serverBase;
 	return utils.getJson({
 		url: '//' + hostName + '/VectorLayer/GetColumnStat',
-		// options: {},
 		params: {
 			layerID: pars.id,
 			column: pars.column,
@@ -393,9 +392,6 @@ const getColumnStat = (pars) => {
 			unique: true
 		}
 	});
-		// .then((json) => {
-			// console.log('GetColumnStat', json);
-		// });
 };
 
 const chkTask = (id) => {
@@ -426,7 +422,8 @@ const chkTask = (id) => {
 const createFilterLayer = (pars, opt) => {
 	pars = pars || {};
 	opt = opt || {};
-	let hostName = pars.hostName || serverBase;
+	let hostName = pars.hostName || serverBase,
+		styles = pars.styles;
 	return new Promise((resolve) => {
 		utils.getJson({
 			url: '//' + hostName + '/VectorLayer/Insert.ashx',
@@ -434,8 +431,7 @@ const createFilterLayer = (pars, opt) => {
 			params: pars
 		})
 		.then((json) => {
-console.log('createFilterLayer________', json);
-
+			//console.log('createFilterLayer________', json);
 			if (json.res.Status === 'ok') {
 				chkTask(json.res.Result.TaskID)
 				.then(json => {
@@ -444,13 +440,11 @@ console.log('createFilterLayer________', json);
 						delete contentNode.content.geometry;
 						let LayerID = contentNode.content.properties.LayerID;
 						window._layersTree.copyHandler(contentNode, $( window._queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0], false, true, () => {
+							let LayerID = contentNode.content.properties.LayerID;
+							let div = $(window._queryMapLayers.buildedTree).find("div[LayerID='" + LayerID + "']")[0];
+							div.gmxProperties.content.properties.styles = styles;
+							window._mapHelper.updateMapStyles(styles, LayerID);
 							resolve(contentNode);
-							// let it = nsGmx.gmxMap.layersByID[LayerID];
-							// if (it && opt.source) {
-								// it.setStyles(opt.source.getStyles());
-							// }
-							// console.log('afterAll ________',nsGmx.gmxMap.layersByID[LayerID], contentNode, pars);
-							
 						});
 					}
 				})
@@ -458,31 +452,47 @@ console.log('createFilterLayer________', json);
 			}
 		})
 		.catch(err => console.log(err));
-
-			// let out = parseTree(json.res);
-			// _maps[hostName] = _maps[hostName] || {};
-			// _maps[hostName][id] = out;
-			// return parseTree(out);
-
-	//Request URL: http://maps.kosmosnimki.ru/VectorLayer/Insert.ashx
-// WrapStyle: message
-// Title: eeee
-// SourceType: Sql
-// Sql: select [geomixergeojson] as gmx_geometry, "Apartment" as "Apartment", "CadCost" as "CadCost", "Category" as "Category", "Code_KLADR" as "Code_KLADR", "Code_OKATO" as "Code_OKATO", "DateCreate" as "DateCreate", "Note" as "Note", "Block_KN" as "Block_KN", "SnglUseKN" as "SnglUseKN", "PostalCode" as "PostalCode", "Region" as "Region", "Assign" as "Assign", "KeyTypOns" as "KeyTypOns", "KeyValOns" as "KeyValOns", "OrBldKN" as "OrBldKN", "OrCnKN" as "OrCnKN", "OrUncKN" as "OrUncKN", "BuildArea" as "BuildArea", "S_REES" as "S_REES", "S_VYP" as "S_VYP", "Flats" as "Flats", "Doc_Code" as "Doc_Code", "Doc_Date" as "Doc_Date", "Doc_Issue" as "Doc_Issue", "Doc_Name" as "Doc_Name", "Enc_Name" as "Enc_Name", "Enc_Type" as "Enc_Type", "Own_Gover" as "Own_Gover", "Own_Organ" as "Own_Organ", "Own_Person" as "Own_Person", "Prev_KN" as "Prev_KN", "RegDate" as "RegDate", "RegNumber" as "RegNumber", "DtCrtOns" as "DtCrtOns", "OksName" as "OksName", "YearBuilt" as "YearBuilt", "YearUsed" as "YearUsed", "Wall" as "Wall", "Floors" as "Floors", "UndFloors" as "UndFloors", "OwnrCdSp" as "OwnrCdSp", "OwnrCdCnt" as "OwnrCdCnt", "Rgstrtn" as "Rgstrtn", "OwnrUr" as "OwnrUr", "OwnrUrInn" as "OwnrUrInn", "OwnrGovRgn" as "OwnrGovRgn", "OwnGovCntr" as "OwnGovCntr", "OwnGovName" as "OwnGovName", "IdSubject" as "IdSubject", "GovCodeSp" as "GovCodeSp", "OwnrUrCd" as "OwnrUrCd", "OwnrUrCnt" as "OwnrUrCnt", "RegIdRec" as "RegIdRec", "RegType" as "RegType", "DateTerm" as "DateTerm", "DocFound" as "DocFound", "GeomType" as "GeomType", "XmlFile" as "XmlFile", "Remove_KN" as "Remove_KN", "S_FIN" as "S_FIN", "S_RZS" as "S_RZS", "SITUAT" as "SITUAT", "S_FS_Flats" as "S_FS_Flats", "Shape_Leng" as "Shape_Leng", "Shape_Area" as "Shape_Area", "Func_Zone" as "Func_Zone", "PermUse" as "PermUse", "gmx_id" as "gmx_id" from [73EEF9D708BB4C54915B6CCB77FDBBF1] WHERE ("S_FIN" = 'FIZ') AND intersects([geomixergeojson], GeometryFromGeoJson('{"type":"Polygon","coordinates":[[[37.286224,55.756486],[37.599335,55.937664],[37.681732,55.565145],[37.286224,55.756486]]]}', 4326))
-// srs: 3857
-// Description: 
-// Copyright: 
-// MetaProperties: {"OwnrUrInn":{"Value":"ИНН","Type":"String"},"S_FIN":{"Value":"Форма собственности","Type":"String"},"filter":{"Value":"true","Type":"String"}}
-// IsRasterCatalog: false
-// NameObject: 
-// TemporalLayer: false
-// CallbackName: id0.70364036522251672
 	});
-
 };
 
+const downloadLayer = (pars, opt) => {
+	pars = pars || {};
+	opt = opt || {};
+	let hostName = pars.hostName || serverBase;
+	return new Promise((resolve) => {
+		utils.getJson({
+			// url: '//' + hostName + '/DownloadLayer.ashx',
+			url: '//' + hostName + '/DownloadVector',
+			// options: {},
+			params: pars
+		})
+		// .then((json) => {
+			// console.log('DownloadVector', json);
+			// let blob = new Blob([JSON.stringify(features, null, '\t')], {type: 'text/json;charset=utf-8;'});
+				//blob = new Blob([JSON.stringify(features, null, '\t')], {type: type});
+			// ev.target.parentNode.setAttribute('href', window.URL.createObjectURL(blob));
+			
+			// if (json.res.Status === 'ok') {
+				// chkTask(json.res.Result.TaskID)
+				// .then(json => {
+					// if (json.Status === 'ok') {
+						// let contentNode = { type: 'layer', content: json.Result.Result };
+						// delete contentNode.content.geometry;
+						// let LayerID = contentNode.content.properties.LayerID;
+						// window._layersTree.copyHandler(contentNode, $( window._queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0], false, true, () => {
+							// resolve(contentNode);
+						// });
+					// }
+				// })
+				// .catch(err => console.log(err));
+			// }
+		// })
+		.catch(err => console.log(err));
+	});
+};
 
 export default {
+	downloadLayer,
 	getColumnStat,
 	createFilterLayer,
 

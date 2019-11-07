@@ -146,3 +146,164 @@ ul.nav.nav-tabs li:nth-child(2).nav-item a.nav-link.active:before {
 }
 
 
+
+
+@import url('https://fonts.googleapis.com/css?family=IBM+Plex+Sans');
+
+body {
+	font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.domrf-plugin-container .sidebar-opened {
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.domrf-plugin-container .row {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    min-height: 60px;
+    flex-wrap: wrap;
+    padding: 0 15px 15px 15px;
+}
+
+
+.domrf-plugin-container .title {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: normal;
+    color: #8A9BA8;
+	font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.domrf-plugin-container select {
+    width: 100%;
+    text-align: right;
+    background: transparent;
+    border: 1px solid #D8E1E8;
+    box-sizing: border-box;
+    border-radius: 5px;
+    height: 30px;
+    font-family: IBM Plex Sans;
+    font-style: italic;
+    font-weight: normal;
+    font-size: 10px;
+    line-height: normal;
+    padding: 0 10px;
+    color: #777;
+}
+
+.domrf-plugin-container select::-webkit-input-placeholder {
+	font-style: italic;
+	font-weight: normal;
+	font-size: 12px;
+	line-height: normal;
+	color: #BFCCD6;
+	font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.domrf-plugin-container select::-moz-placeholder {
+	font-style: italic;
+	font-weight: normal;
+	font-size: 12px;
+	line-height: normal;
+	color: #BFCCD6;
+	font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.domrf-plugin-container select:-moz-placeholder {
+	font-style: italic;
+	font-weight: normal;
+	font-size: 12px;
+	line-height: normal;
+	color: #BFCCD6;
+	font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.domrf-plugin-container select:-ms-input-placeholder {
+	font-style: italic;
+	font-weight: normal;
+	font-size: 12px;
+	line-height: normal;
+	color: #BFCCD6;
+	font-family: 'IBM Plex Sans', sans-serif;
+}
+
+.domrf-plugin-container input[type="text"] {
+    width: 100%;
+    text-align: right;
+    background: transparent;
+    border: 1px solid #D8E1E8;
+    box-sizing: border-box;
+    border-radius: 5px;
+    height: 30px;
+    font-family: IBM Plex Sans;
+    font-style: italic;
+    font-weight: normal;
+    font-size: 10px;
+    line-height: normal;
+    padding: 0 10px;
+    color: #777;
+}
+
+.domrf-plugin-container .checkbox {
+    display: inline-flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.domrf-plugin-container label.css-label2.radGroup1 {
+    font-style: normal;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: normal;
+    color: #8A9BA8;
+    font-family: 'IBM Plex Sans', sans-serif;
+    display: block;
+    margin-left: 5px;
+}
+
+.domrf-plugin-container button.button {
+    width: 90%;
+    position: relative;
+    left: 17px;
+    height: 30px;
+    padding: 0;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 12px;
+    line-height: normal;
+    color: #8A9BA8;
+    font-family: 'IBM Plex Sans', sans-serif;
+    display: block;
+    background: #FFF;
+    border: 1px solid;
+    border-radius: 3px;
+    cursor: pointer;
+	margin-bottom: 17px;
+}
+
+.domrf-plugin-container .sidebar-opened .row:nth-child(1):before {
+    content: url(https://img.icons8.com/material/24/000000/reboot.png);
+    width: 24px;
+    height: 24px;
+    position: absolute;
+    right: 18px;
+    top: 45px;
+    opacity: 0.44;
+    -webkit-animation: spin 4s linear infinite;
+    -moz-animation: spin 4s linear infinite;
+    animation: spin 2s linear infinite;
+}
+
+.domrf-plugin-container .sidebar-opened .row.hidden:before {
+	display:none;
+}
+
+@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
+@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
+	

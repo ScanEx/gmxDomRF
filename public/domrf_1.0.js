@@ -1218,7 +1218,6 @@ var gmxDomRF = (function (exports) {
     	let hostName = pars.hostName || serverBase;
     	return utils.getJson({
     		url: '//' + hostName + '/VectorLayer/GetColumnStat',
-    		// options: {},
     		params: {
     			layerID: pars.id,
     			column: pars.column,
@@ -1226,9 +1225,6 @@ var gmxDomRF = (function (exports) {
     			unique: true
     		}
     	});
-    		// .then((json) => {
-    			// console.log('GetColumnStat', json);
-    		// });
     };
 
     const chkTask = (id) => {
@@ -1258,7 +1254,8 @@ var gmxDomRF = (function (exports) {
 
     const createFilterLayer = (pars, opt) => {
     	pars = pars || {};
-    	let hostName = pars.hostName || serverBase;
+    	let hostName = pars.hostName || serverBase,
+    		styles = pars.styles;
     	return new Promise((resolve) => {
     		utils.getJson({
     			url: '//' + hostName + '/VectorLayer/Insert.ashx',
@@ -1266,8 +1263,7 @@ var gmxDomRF = (function (exports) {
     			params: pars
     		})
     		.then((json) => {
-    console.log('createFilterLayer________', json);
-
+    			//console.log('createFilterLayer________', json);
     			if (json.res.Status === 'ok') {
     				chkTask(json.res.Result.TaskID)
     				.then(json => {
@@ -1276,13 +1272,11 @@ var gmxDomRF = (function (exports) {
     						delete contentNode.content.geometry;
     						let LayerID = contentNode.content.properties.LayerID;
     						window._layersTree.copyHandler(contentNode, $( window._queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0], false, true, () => {
+    							let LayerID = contentNode.content.properties.LayerID;
+    							let div = $(window._queryMapLayers.buildedTree).find("div[LayerID='" + LayerID + "']")[0];
+    							div.gmxProperties.content.properties.styles = styles;
+    							window._mapHelper.updateMapStyles(styles, LayerID);
     							resolve(contentNode);
-    							// let it = nsGmx.gmxMap.layersByID[LayerID];
-    							// if (it && opt.source) {
-    								// it.setStyles(opt.source.getStyles());
-    							// }
-    							// console.log('afterAll ________',nsGmx.gmxMap.layersByID[LayerID], contentNode, pars);
-    							
     						});
     					}
     				})
@@ -1290,31 +1284,46 @@ var gmxDomRF = (function (exports) {
     			}
     		})
     		.catch(err => console.log(err));
-
-    			// let out = parseTree(json.res);
-    			// _maps[hostName] = _maps[hostName] || {};
-    			// _maps[hostName][id] = out;
-    			// return parseTree(out);
-
-    	//Request URL: http://maps.kosmosnimki.ru/VectorLayer/Insert.ashx
-    // WrapStyle: message
-    // Title: eeee
-    // SourceType: Sql
-    // Sql: select [geomixergeojson] as gmx_geometry, "Apartment" as "Apartment", "CadCost" as "CadCost", "Category" as "Category", "Code_KLADR" as "Code_KLADR", "Code_OKATO" as "Code_OKATO", "DateCreate" as "DateCreate", "Note" as "Note", "Block_KN" as "Block_KN", "SnglUseKN" as "SnglUseKN", "PostalCode" as "PostalCode", "Region" as "Region", "Assign" as "Assign", "KeyTypOns" as "KeyTypOns", "KeyValOns" as "KeyValOns", "OrBldKN" as "OrBldKN", "OrCnKN" as "OrCnKN", "OrUncKN" as "OrUncKN", "BuildArea" as "BuildArea", "S_REES" as "S_REES", "S_VYP" as "S_VYP", "Flats" as "Flats", "Doc_Code" as "Doc_Code", "Doc_Date" as "Doc_Date", "Doc_Issue" as "Doc_Issue", "Doc_Name" as "Doc_Name", "Enc_Name" as "Enc_Name", "Enc_Type" as "Enc_Type", "Own_Gover" as "Own_Gover", "Own_Organ" as "Own_Organ", "Own_Person" as "Own_Person", "Prev_KN" as "Prev_KN", "RegDate" as "RegDate", "RegNumber" as "RegNumber", "DtCrtOns" as "DtCrtOns", "OksName" as "OksName", "YearBuilt" as "YearBuilt", "YearUsed" as "YearUsed", "Wall" as "Wall", "Floors" as "Floors", "UndFloors" as "UndFloors", "OwnrCdSp" as "OwnrCdSp", "OwnrCdCnt" as "OwnrCdCnt", "Rgstrtn" as "Rgstrtn", "OwnrUr" as "OwnrUr", "OwnrUrInn" as "OwnrUrInn", "OwnrGovRgn" as "OwnrGovRgn", "OwnGovCntr" as "OwnGovCntr", "OwnGovName" as "OwnGovName", "IdSubject" as "IdSubject", "GovCodeSp" as "GovCodeSp", "OwnrUrCd" as "OwnrUrCd", "OwnrUrCnt" as "OwnrUrCnt", "RegIdRec" as "RegIdRec", "RegType" as "RegType", "DateTerm" as "DateTerm", "DocFound" as "DocFound", "GeomType" as "GeomType", "XmlFile" as "XmlFile", "Remove_KN" as "Remove_KN", "S_FIN" as "S_FIN", "S_RZS" as "S_RZS", "SITUAT" as "SITUAT", "S_FS_Flats" as "S_FS_Flats", "Shape_Leng" as "Shape_Leng", "Shape_Area" as "Shape_Area", "Func_Zone" as "Func_Zone", "PermUse" as "PermUse", "gmx_id" as "gmx_id" from [73EEF9D708BB4C54915B6CCB77FDBBF1] WHERE ("S_FIN" = 'FIZ') AND intersects([geomixergeojson], GeometryFromGeoJson('{"type":"Polygon","coordinates":[[[37.286224,55.756486],[37.599335,55.937664],[37.681732,55.565145],[37.286224,55.756486]]]}', 4326))
-    // srs: 3857
-    // Description: 
-    // Copyright: 
-    // MetaProperties: {"OwnrUrInn":{"Value":"ИНН","Type":"String"},"S_FIN":{"Value":"Форма собственности","Type":"String"},"filter":{"Value":"true","Type":"String"}}
-    // IsRasterCatalog: false
-    // NameObject: 
-    // TemporalLayer: false
-    // CallbackName: id0.70364036522251672
     	});
-
     };
 
+    const downloadLayer = (pars, opt) => {
+    	pars = pars || {};
+    	let hostName = pars.hostName || serverBase;
+    	return new Promise((resolve) => {
+    		utils.getJson({
+    			// url: '//' + hostName + '/DownloadLayer.ashx',
+    			url: '//' + hostName + '/DownloadVector',
+    			// options: {},
+    			params: pars
+    		})
+    		// .then((json) => {
+    			// console.log('DownloadVector', json);
+    			// let blob = new Blob([JSON.stringify(features, null, '\t')], {type: 'text/json;charset=utf-8;'});
+    				//blob = new Blob([JSON.stringify(features, null, '\t')], {type: type});
+    			// ev.target.parentNode.setAttribute('href', window.URL.createObjectURL(blob));
+    			
+    			// if (json.res.Status === 'ok') {
+    				// chkTask(json.res.Result.TaskID)
+    				// .then(json => {
+    					// if (json.Status === 'ok') {
+    						// let contentNode = { type: 'layer', content: json.Result.Result };
+    						// delete contentNode.content.geometry;
+    						// let LayerID = contentNode.content.properties.LayerID;
+    						// window._layersTree.copyHandler(contentNode, $( window._queryMapLayers.buildedTree.firstChild).children("div[MapID]")[0], false, true, () => {
+    							// resolve(contentNode);
+    						// });
+    					// }
+    				// })
+    				// .catch(err => console.log(err));
+    			// }
+    		// })
+    		.catch(err => console.log(err));
+    	});
+    };
 
     var Requests = {
+    	downloadLayer,
     	getColumnStat,
     	createFilterLayer,
 
@@ -1410,7 +1419,7 @@ var gmxDomRF = (function (exports) {
     	return child_ctx;
     }
 
-    // (298:4) {#each Object.keys(filterLayers) as k}
+    // (248:4) {#each Object.keys(filterLayers) as k}
     function create_each_block_2(ctx) {
     	var option, t_value = ctx.filterLayers[ctx.k].title + "", t, option_value_value;
 
@@ -1420,7 +1429,7 @@ var gmxDomRF = (function (exports) {
     			t = text(t_value);
     			option.__value = option_value_value = ctx.filterLayers[ctx.k].id;
     			option.value = option.__value;
-    			add_location(option, file, 298, 4, 8491);
+    			add_location(option, file, 248, 4, 8071);
     		},
 
     		m: function mount(target, anchor) {
@@ -1446,11 +1455,11 @@ var gmxDomRF = (function (exports) {
     			}
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_each_block_2.name, type: "each", source: "(298:4) {#each Object.keys(filterLayers) as k}", ctx });
+    	dispatch_dev("SvelteRegisterBlock", { block, id: create_each_block_2.name, type: "each", source: "(248:4) {#each Object.keys(filterLayers) as k}", ctx });
     	return block;
     }
 
-    // (305:0) {#if currLayer}
+    // (255:0) {#if currLayer}
     function create_if_block(ctx) {
     	var t0, div1, div0, input, label, t2, dispose;
 
@@ -1483,14 +1492,14 @@ var gmxDomRF = (function (exports) {
     			attr_dev(input, "id", "checkboxG4");
     			attr_dev(input, "class", "css-checkbox2");
     			attr_dev(input, "title", "Нарисовать или выбрать объект по правой кнопке на вершине");
-    			add_location(input, file, 323, 5, 9116);
+    			add_location(input, file, 273, 5, 8696);
     			attr_dev(label, "for", "checkboxG4");
     			attr_dev(label, "class", "css-label2 radGroup1");
-    			add_location(label, file, 323, 205, 9316);
+    			add_location(label, file, 273, 205, 8896);
     			attr_dev(div0, "class", "checkbox");
-    			add_location(div0, file, 322, 2, 9087);
+    			add_location(div0, file, 272, 2, 8667);
     			attr_dev(div1, "class", "row");
-    			add_location(div1, file, 321, 1, 9066);
+    			add_location(div1, file, 271, 1, 8646);
     			dispose = listen_dev(input, "change", ctx.createDrawing);
     		},
 
@@ -1559,11 +1568,11 @@ var gmxDomRF = (function (exports) {
     			dispose();
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_if_block.name, type: "if", source: "(305:0) {#if currLayer}", ctx });
+    	dispatch_dev("SvelteRegisterBlock", { block, id: create_if_block.name, type: "if", source: "(255:0) {#if currLayer}", ctx });
     	return block;
     }
 
-    // (311:2) {#if currLayer.filters[field].datalist}
+    // (261:2) {#if currLayer.filters[field].datalist}
     function create_if_block_2(ctx) {
     	var datalist, datalist_id_value;
 
@@ -1583,7 +1592,7 @@ var gmxDomRF = (function (exports) {
     				each_blocks[i].c();
     			}
     			attr_dev(datalist, "id", datalist_id_value = ctx.field);
-    			add_location(datalist, file, 311, 3, 8883);
+    			add_location(datalist, file, 261, 3, 8463);
     		},
 
     		m: function mount(target, anchor) {
@@ -1630,11 +1639,11 @@ var gmxDomRF = (function (exports) {
     			destroy_each(each_blocks, detaching);
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_if_block_2.name, type: "if", source: "(311:2) {#if currLayer.filters[field].datalist}", ctx });
+    	dispatch_dev("SvelteRegisterBlock", { block, id: create_if_block_2.name, type: "if", source: "(261:2) {#if currLayer.filters[field].datalist}", ctx });
     	return block;
     }
 
-    // (313:4) {#each currLayer.filters[field].datalist as pt}
+    // (263:4) {#each currLayer.filters[field].datalist as pt}
     function create_each_block_1(ctx) {
     	var option, option_value_value;
 
@@ -1643,7 +1652,7 @@ var gmxDomRF = (function (exports) {
     			option = element("option");
     			option.__value = option_value_value = ctx.pt.value;
     			option.value = option.__value;
-    			add_location(option, file, 313, 4, 8965);
+    			add_location(option, file, 263, 4, 8545);
     		},
 
     		m: function mount(target, anchor) {
@@ -1664,11 +1673,11 @@ var gmxDomRF = (function (exports) {
     			}
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_each_block_1.name, type: "each", source: "(313:4) {#each currLayer.filters[field].datalist as pt}", ctx });
+    	dispatch_dev("SvelteRegisterBlock", { block, id: create_each_block_1.name, type: "each", source: "(263:4) {#each currLayer.filters[field].datalist as pt}", ctx });
     	return block;
     }
 
-    // (306:1) {#each Object.keys(currLayer.filters) as field}
+    // (256:1) {#each Object.keys(currLayer.filters) as field}
     function create_each_block(ctx) {
     	var div2, div0, t0_value = ctx.currLayer.filters[ctx.field].title + "", t0, t1, div1, input, input_name_value, input_list_value, t2;
 
@@ -1685,15 +1694,15 @@ var gmxDomRF = (function (exports) {
     			t2 = space();
     			if (if_block) if_block.c();
     			attr_dev(div0, "class", "title");
-    			add_location(div0, file, 307, 2, 8699);
+    			add_location(div0, file, 257, 2, 8279);
     			attr_dev(input, "type", "text");
     			attr_dev(input, "name", input_name_value = ctx.field);
     			attr_dev(input, "list", input_list_value = ctx.field);
-    			add_location(input, file, 309, 3, 8784);
+    			add_location(input, file, 259, 3, 8364);
     			attr_dev(div1, "class", "input");
-    			add_location(div1, file, 308, 2, 8760);
+    			add_location(div1, file, 258, 2, 8340);
     			attr_dev(div2, "class", "row");
-    			add_location(div2, file, 306, 1, 8678);
+    			add_location(div2, file, 256, 1, 8258);
     		},
 
     		m: function mount(target, anchor) {
@@ -1742,11 +1751,11 @@ var gmxDomRF = (function (exports) {
     			if (if_block) if_block.d();
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_each_block.name, type: "each", source: "(306:1) {#each Object.keys(currLayer.filters) as field}", ctx });
+    	dispatch_dev("SvelteRegisterBlock", { block, id: create_each_block.name, type: "each", source: "(256:1) {#each Object.keys(currLayer.filters) as field}", ctx });
     	return block;
     }
 
-    // (325:3) {#if currDrawingObj}
+    // (275:3) {#if currDrawingObj}
     function create_if_block_1(ctx) {
     	var span, t;
 
@@ -1755,7 +1764,7 @@ var gmxDomRF = (function (exports) {
     			span = element("span");
     			t = text(ctx.currDrawingObjArea);
     			attr_dev(span, "class", "currDrawingObjArea");
-    			add_location(span, file, 325, 3, 9438);
+    			add_location(span, file, 275, 3, 9018);
     		},
 
     		m: function mount(target, anchor) {
@@ -1775,12 +1784,12 @@ var gmxDomRF = (function (exports) {
     			}
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_if_block_1.name, type: "if", source: "(325:3) {#if currDrawingObj}", ctx });
+    	dispatch_dev("SvelteRegisterBlock", { block, id: create_if_block_1.name, type: "if", source: "(275:3) {#if currDrawingObj}", ctx });
     	return block;
     }
 
     function create_fragment(ctx) {
-    	var div4, div2, div0, t1, div1, select, option, t2, t3, div3, button0, t5, button1, div3_disabled_value, dispose;
+    	var div4, div2, div0, t1, div1, select, option, t2, t3, div3, button0, t5, a, button1, div3_disabled_value, dispose;
 
     	let each_value_2 = Object.keys(ctx.filterLayers);
 
@@ -1814,27 +1823,32 @@ var gmxDomRF = (function (exports) {
     			button0 = element("button");
     			button0.textContent = "Создать слой по фильтру";
     			t5 = space();
+    			a = element("a");
     			button1 = element("button");
     			button1.textContent = "Экспорт в Excel";
     			attr_dev(div0, "class", "title");
-    			add_location(div0, file, 293, 2, 8321);
+    			add_location(div0, file, 243, 2, 7901);
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file, 296, 4, 8422);
-    			add_location(select, file, 295, 3, 8384);
+    			add_location(option, file, 246, 4, 8002);
+    			add_location(select, file, 245, 3, 7964);
     			attr_dev(div1, "class", "input");
-    			add_location(div1, file, 294, 2, 8360);
-    			attr_dev(div2, "class", "row");
-    			add_location(div2, file, 292, 1, 8300);
+    			add_location(div1, file, 244, 2, 7940);
+    			attr_dev(div2, "class", "row hidden");
+    			add_location(div2, file, 242, 1, 7849);
     			attr_dev(button0, "class", "button");
-    			add_location(button0, file, 332, 2, 9625);
+    			add_location(button0, file, 282, 2, 9205);
     			attr_dev(button1, "class", "button");
-    			add_location(button1, file, 333, 2, 9715);
+    			add_location(button1, file, 284, 2, 9356);
+    			attr_dev(a, "href", "test");
+    			attr_dev(a, "download", "features.geojson");
+    			attr_dev(a, "target", "_blank");
+    			add_location(a, file, 283, 0, 9293);
     			attr_dev(div3, "class", "bottom");
     			attr_dev(div3, "disabled", div3_disabled_value = ctx.currLayer ? false : true);
-    			add_location(div3, file, 331, 1, 9540);
+    			add_location(div3, file, 281, 1, 9120);
     			attr_dev(div4, "class", "sidebar-opened");
-    			add_location(div4, file, 291, 0, 8249);
+    			add_location(div4, file, 241, 0, 7798);
 
     			dispose = [
     				listen_dev(select, "change", ctx.changeLayer),
@@ -1860,13 +1874,15 @@ var gmxDomRF = (function (exports) {
     				each_blocks[i].m(select, null);
     			}
 
+    			ctx.div2_binding(div2);
     			append_dev(div4, t2);
     			if (if_block) if_block.m(div4, null);
     			append_dev(div4, t3);
     			append_dev(div4, div3);
     			append_dev(div3, button0);
     			append_dev(div3, t5);
-    			append_dev(div3, button1);
+    			append_dev(div3, a);
+    			append_dev(a, button1);
     			ctx.div3_binding(div3);
     			ctx.div4_binding(div4);
     		},
@@ -1922,6 +1938,7 @@ var gmxDomRF = (function (exports) {
 
     			destroy_each(each_blocks, detaching);
 
+    			ctx.div2_binding(null);
     			if (if_block) if_block.d();
     			ctx.div3_binding(null);
     			ctx.div4_binding(null);
@@ -1939,6 +1956,7 @@ var gmxDomRF = (function (exports) {
     const stateStorage = Utils.getState();
     let changedParams = {test: 23};
 
+    let waitingIcon = null;
     let exportButton = null;
     let content = null;
 
@@ -2021,18 +2039,19 @@ var gmxDomRF = (function (exports) {
     const changeLayer = (ev) => {
     	let id = ev ? ev.target.selectedOptions[0].value : null,
     		_gmx = gmxMap$1.layersByID[id];
+
+    	waitingIcon.classList.remove('hidden');
     	if (id) {
     		getColumnStat(id).then((arr) => {
     			$$invalidate('currLayer', currLayer = filterLayers[id]);
     			arr.forEach((it) => {
     				$$invalidate('currLayer', currLayer.filters[it.field].datalist = it.datalist, currLayer);
     			});
-    			console.log('________', currLayer, arr);
-    			// arr.
+    			waitingIcon.classList.add('hidden');
+    			// console.log('________', currLayer, arr)
     		});
     	} else {
     		$$invalidate('currLayer', currLayer = null);
-    		
     	}
     console.log('changeLayer', id, filterLayers[id], gmxMap$1.layersByID[id]);
     };
@@ -2092,88 +2111,30 @@ var gmxDomRF = (function (exports) {
     	}
     };
 
-    /*
-    let reportCounts = 0; Store.reportsCount.subscribe(json => {
-    	let count = json.limit - json.used;
-    	reportCounts = count > 0 ? count : 0;
-    });
-    Utils.getReportsCount()
-
-    let delynkaLayer = null;
-    let kvartalLayer = null;
-    const _setLayer = (id) => {
-    	let it = gmxMap.layersByID[id],
-    		bbox = it.getBounds();
-    	// if (addDelynkaFlag !== 1) {
-    		map.fitBounds(bbox);
-    	// }
-    	map.addLayer(it);
-    	return it;
-    };
-
-    let delItems = null;
-    Store.delItems.subscribe(value => {
-     delItems = value;
-     	 console.log('delItems', delItems);
-
-    });
-
-    const _closeNotice = (nm) => {
-    	let name = 'notice-create-report',
-    		node;
-    	if (!nm || nm === 0) {
-    		node = document.getElementsByClassName(name)[0];
-    		if (node) { node.classList.add('hidden'); }
-    	}
-    	if (!nm || nm > 0) {
-    		node = document.getElementsByClassName(name + nm)[0];
-    		if (node) { node.classList.add('hidden'); }
-    	}
-    };
-    const fitBounds = (nm) => {
-    	let arr = delItems.values[nm],
-    		geo = arr[arr.length - 1],
-    		bbox = L.gmxUtil.getGeometryBounds(geo),
-    		latlngBbox = L.latLngBounds([[bbox.min.y, bbox.min.x], [bbox.max.y, bbox.max.x]]);
-    	map.fitBounds(latlngBbox);
-    	//console.log('fitBounds', nm, geo);
-    };
-    const toggleDelyanka = (ev) => {
-    	let arr = document.getElementsByClassName('selectDelyanka'),
-    		ctrlKey = ev.ctrlKey,
-    		checked = ev.target.checked;
-
-    	for (let i = 0, len = arr.length; i < len; i++) {
-    		arr[i].checked = ctrlKey ? !arr[i].checked : checked;
-    	}
-    	console.log('toggleDelyanka', checked, arr);
-    };
-
-    let reportIsOpen = null;
-    const openReport = (ev) => {
-    	if (delynkaLayer) {
-    		reportIsOpen = true;
-    		_closeNotice();
-    		// console.log('openReport', delynkaLayer);
-    	}
-    };
-    const closeReport = (ev) => { reportIsOpen = null; };
-
-    const toggleHint = (ev) => {
-    	let target = ev.target,
-    		name = 'notice-create-report' + (target.classList.contains('icon-report') ? '' : '1'),
-    		node = document.getElementsByClassName(name)[0];
-    	if (node.classList.contains('hidden')) {
-    		node.classList.remove('hidden');
-    	} else {
-    		node.classList.add('hidden');
-    	}
-    };
-    */
+    //let LayerID = res.content.properties.LayerID;
     const createExport = (ev) => {
     	let nodes = content.getElementsByTagName('input'),
-    		arr = [];
-    	console.log('createExport', exportButton, content, arr.join(' , ') );
+    		id = currLayer.id;
+     
+    	waitingIcon.classList.remove('hidden');
+    	Requests.downloadLayer({
+    		//columns: 
+    		// format: 'csv',
+    		// t: currLayer.id
+    		format: 'csv',
+    		layer: currLayer.id
+    	}).then((res) => {
+    		waitingIcon.classList.add('hidden');
+    			//let blob = new Blob([res.res], {type: 'text/json;charset=utf-8;'});
+    				//blob = new Blob([JSON.stringify(features, null, '\t')], {type: type});
+    		ev.target.parentNode.setAttribute('href', window.URL.createObjectURL(res.res));
+     console.log('downloadLayer 111 ________', res);
+
+    	});
+    	console.log('createExport', currLayer );
+    // t: F5DA3E0F4040448887353A1DB2D22234
+    // format: csv
+    // columns: [{"Value":"[gmx_id]","Alias":"gmx_id"},{"Value":"[Apartment]","Alias":"Apartment"},{"Value":"[CadCost]","Alias":"CadCost"},{"Value":"[Category]","Alias":"Category"},{"Value":"[Code_KLADR]","Alias":"Code_KLADR"},{"Value":"[Code_OKATO]","Alias":"Code_OKATO"},{"Value":"[DateCreate]","Alias":"DateCreate"},{"Value":"[Note]","Alias":"Note"},{"Value":"[Block_KN]","Alias":"Block_KN"},{"Value":"[SnglUseKN]","Alias":"SnglUseKN"},{"Value":"[PostalCode]","Alias":"PostalCode"},{"Value":"[Region]","Alias":"Region"},{"Value":"[Assign]","Alias":"Assign"},{"Value":"[KeyTypOns]","Alias":"KeyTypOns"}
     };
 
     const createFilterLayer = (ev) => {
@@ -2183,6 +2144,8 @@ var gmxDomRF = (function (exports) {
     		nodes = content.getElementsByTagName('input'),
     		pars = {SourceType: 'Sql', srs: 3857},
     		arr = [];
+
+    	waitingIcon.classList.remove('hidden');
     	for (let i = 0, len = nodes.length; i < len; i++) {
     		let node = nodes[i],
     			name = node.name,
@@ -2193,10 +2156,10 @@ var gmxDomRF = (function (exports) {
     	}
     	pars.Title = 'Фильтр ' + arr.join(', ') + ' по слою "' + props.title + '"';
     	pars.styles = props.styles;
-    	pars.Description = props.Description;
-    	pars.Copyright = props.Copyright;
-    	pars.IsRasterCatalog = false;
-    	pars.TemporalLayer = false;
+    	pars.Description = props.description || '';
+    	pars.Copyright = props.Copyright || '';
+    	// pars.IsRasterCatalog = false;
+    	// pars.TemporalLayer = false;
 
     	let w = 'WHERE (' + arr.join(') AND (') + ')';
     	if (currDrawingObj) {
@@ -2205,15 +2168,24 @@ var gmxDomRF = (function (exports) {
     	pars.Sql = 'select [geomixergeojson] as gmx_geometry, ' + currLayer.attr + ', "gmx_id" as "gmx_id" from [' + id + '] ' + w;
 
     	Requests.createFilterLayer(pars).then((res) => {
+    		waitingIcon.classList.add('hidden');
     console.log('afterAll 111 ________', res);
-    		let LayerID = res.content.properties.LayerID,
-    			it = gmxMap$1.layersByID[LayerID];
-    							// if (it && opt.source) {
-    		it.setStyles(layer.getStyles());
-    							// }
+    		// let LayerID = res.content.properties.LayerID;
+    		// ,
+    			// it = gmxMap.layersByID[LayerID];
+    		//it.setStyles(layer.getStyles());
+    		// let div = $(window._queryMapLayers.buildedTree).find("div[LayerID='" + LayerID + "']")[0];
+    		// div.gmxProperties.content.properties.styles = props.styles;
+    		// window._mapHelper.updateMapStyles(props.styles, LayerID);
     	});
     //	console.log('createFilterLayer', exportButton, content, arr.join(' , ') );
     };
+
+    	function div2_binding($$value) {
+    		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
+    			$$invalidate('waitingIcon', waitingIcon = $$value);
+    		});
+    	}
 
     	function input_binding($$value) {
     		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
@@ -2239,6 +2211,7 @@ var gmxDomRF = (function (exports) {
 
     	$$self.$inject_state = $$props => {
     		if ('changedParams' in $$props) changedParams = $$props.changedParams;
+    		if ('waitingIcon' in $$props) $$invalidate('waitingIcon', waitingIcon = $$props.waitingIcon);
     		if ('exportButton' in $$props) $$invalidate('exportButton', exportButton = $$props.exportButton);
     		if ('content' in $$props) $$invalidate('content', content = $$props.content);
     		if ('filterLayers' in $$props) $$invalidate('filterLayers', filterLayers = $$props.filterLayers);
@@ -2252,6 +2225,7 @@ var gmxDomRF = (function (exports) {
     	};
 
     	return {
+    		waitingIcon,
     		exportButton,
     		content,
     		filterLayers,
@@ -2263,6 +2237,7 @@ var gmxDomRF = (function (exports) {
     		createDrawing,
     		createExport,
     		createFilterLayer,
+    		div2_binding,
     		input_binding,
     		div3_binding,
     		div4_binding
@@ -2280,34 +2255,6 @@ var gmxDomRF = (function (exports) {
     /* src\App.svelte generated by Svelte v3.12.1 */
 
     const file$1 = "src\\App.svelte";
-
-    // (69:0) {:else}
-    function create_else_block(ctx) {
-    	const block = {
-    		c: noop,
-    		m: noop,
-    		p: noop,
-    		i: noop,
-    		o: noop,
-    		d: noop
-    	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_else_block.name, type: "else", source: "(69:0) {:else}", ctx });
-    	return block;
-    }
-
-    // (68:26) 
-    function create_if_block_1$1(ctx) {
-    	const block = {
-    		c: noop,
-    		m: noop,
-    		p: noop,
-    		i: noop,
-    		o: noop,
-    		d: noop
-    	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_if_block_1$1.name, type: "if", source: "(68:26) ", ctx });
-    	return block;
-    }
 
     // (66:0) {#if tab === 'filters'}
     function create_if_block$1(ctx) {
@@ -2366,24 +2313,9 @@ var gmxDomRF = (function (exports) {
     }
 
     function create_fragment$1(ctx) {
-    	var div, ul, li, a, t0, a_class_value, t1, current_block_type_index, if_block, current, dispose;
+    	var div, ul, li, a, t0, a_class_value, t1, current, dispose;
 
-    	var if_block_creators = [
-    		create_if_block$1,
-    		create_if_block_1$1,
-    		create_else_block
-    	];
-
-    	var if_blocks = [];
-
-    	function select_block_type(changed, ctx) {
-    		if (ctx.tab === 'filters') return 0;
-    		if (ctx.tab === 'kvart') return 1;
-    		return 2;
-    	}
-
-    	current_block_type_index = select_block_type(null, ctx);
-    	if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
+    	var if_block = (ctx.tab === 'filters') && create_if_block$1(ctx);
 
     	const block = {
     		c: function create() {
@@ -2393,9 +2325,9 @@ var gmxDomRF = (function (exports) {
     			a = element("a");
     			t0 = text("Фильтры");
     			t1 = space();
-    			if_block.c();
+    			if (if_block) if_block.c();
     			attr_dev(a, "class", a_class_value = "nav-link " + (ctx.tab === 'filters' ? 'active' : '-'));
-    			attr_dev(a, "href", "#tab2");
+    			attr_dev(a, "href", "#tab");
     			attr_dev(a, "data-toggle", "tab");
     			add_location(a, file$1, 61, 3, 1705);
     			attr_dev(li, "class", "nav-item");
@@ -2418,7 +2350,7 @@ var gmxDomRF = (function (exports) {
     			append_dev(li, a);
     			append_dev(a, t0);
     			append_dev(div, t1);
-    			if_blocks[current_block_type_index].m(div, null);
+    			if (if_block) if_block.m(div, null);
     			current = true;
     		},
 
@@ -2427,24 +2359,22 @@ var gmxDomRF = (function (exports) {
     				attr_dev(a, "class", a_class_value);
     			}
 
-    			var previous_block_index = current_block_type_index;
-    			current_block_type_index = select_block_type(changed, ctx);
-    			if (current_block_type_index === previous_block_index) {
-    				if_blocks[current_block_type_index].p(changed, ctx);
-    			} else {
+    			if (ctx.tab === 'filters') {
+    				if (if_block) {
+    					if_block.p(changed, ctx);
+    					transition_in(if_block, 1);
+    				} else {
+    					if_block = create_if_block$1(ctx);
+    					if_block.c();
+    					transition_in(if_block, 1);
+    					if_block.m(div, null);
+    				}
+    			} else if (if_block) {
     				group_outros();
-    				transition_out(if_blocks[previous_block_index], 1, 1, () => {
-    					if_blocks[previous_block_index] = null;
+    				transition_out(if_block, 1, 1, () => {
+    					if_block = null;
     				});
     				check_outros();
-
-    				if_block = if_blocks[current_block_type_index];
-    				if (!if_block) {
-    					if_block = if_blocks[current_block_type_index] = if_block_creators[current_block_type_index](ctx);
-    					if_block.c();
-    				}
-    				transition_in(if_block, 1);
-    				if_block.m(div, null);
     			}
     		},
 
@@ -2464,7 +2394,7 @@ var gmxDomRF = (function (exports) {
     				detach_dev(div);
     			}
 
-    			if_blocks[current_block_type_index].d();
+    			if (if_block) if_block.d();
     			dispose();
     		}
     	};
