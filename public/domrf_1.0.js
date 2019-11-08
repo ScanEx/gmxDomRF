@@ -1,14 +1,7 @@
-
-(function(l, r) { if (l.getElementById('livereloadscript')) return; r = l.createElement('script'); r.async = 1; r.src = '//' + (window.location.host || 'localhost').split(':')[0] + ':35729/livereload.js?snipver=1'; r.id = 'livereloadscript'; l.head.appendChild(r) })(window.document);
 var gmxDomRF = (function (exports) {
     'use strict';
 
     function noop() { }
-    function add_location(element, file, line, column, char) {
-        element.__svelte_meta = {
-            loc: { file, line, column, char }
-        };
-    }
     function run(fn) {
         return fn();
     }
@@ -62,23 +55,15 @@ var gmxDomRF = (function (exports) {
     function children(element) {
         return Array.from(element.childNodes);
     }
-    function custom_event(type, detail) {
-        const e = document.createEvent('CustomEvent');
-        e.initCustomEvent(type, false, false, detail);
-        return e;
+    function set_data(text, data) {
+        data = '' + data;
+        if (text.data !== data)
+            text.data = data;
     }
 
     let current_component;
     function set_current_component(component) {
         current_component = component;
-    }
-    function get_current_component() {
-        if (!current_component)
-            throw new Error(`Function called outside component initialization`);
-        return current_component;
-    }
-    function onMount(fn) {
-        get_current_component().$$.on_mount.push(fn);
     }
 
     const dirty_components = [];
@@ -291,67 +276,6 @@ var gmxDomRF = (function (exports) {
         }
     }
 
-    function dispatch_dev(type, detail) {
-        document.dispatchEvent(custom_event(type, detail));
-    }
-    function append_dev(target, node) {
-        dispatch_dev("SvelteDOMInsert", { target, node });
-        append(target, node);
-    }
-    function insert_dev(target, node, anchor) {
-        dispatch_dev("SvelteDOMInsert", { target, node, anchor });
-        insert(target, node, anchor);
-    }
-    function detach_dev(node) {
-        dispatch_dev("SvelteDOMRemove", { node });
-        detach(node);
-    }
-    function listen_dev(node, event, handler, options, has_prevent_default, has_stop_propagation) {
-        const modifiers = options === true ? ["capture"] : options ? Array.from(Object.keys(options)) : [];
-        if (has_prevent_default)
-            modifiers.push('preventDefault');
-        if (has_stop_propagation)
-            modifiers.push('stopPropagation');
-        dispatch_dev("SvelteDOMAddEventListener", { node, event, handler, modifiers });
-        const dispose = listen(node, event, handler, options);
-        return () => {
-            dispatch_dev("SvelteDOMRemoveEventListener", { node, event, handler, modifiers });
-            dispose();
-        };
-    }
-    function attr_dev(node, attribute, value) {
-        attr(node, attribute, value);
-        if (value == null)
-            dispatch_dev("SvelteDOMRemoveAttribute", { node, attribute });
-        else
-            dispatch_dev("SvelteDOMSetAttribute", { node, attribute, value });
-    }
-    function prop_dev(node, property, value) {
-        node[property] = value;
-        dispatch_dev("SvelteDOMSetProperty", { node, property, value });
-    }
-    function set_data_dev(text, data) {
-        data = '' + data;
-        if (text.data === data)
-            return;
-        dispatch_dev("SvelteDOMSetData", { node: text, data });
-        text.data = data;
-    }
-    class SvelteComponentDev extends SvelteComponent {
-        constructor(options) {
-            if (!options || (!options.target && !options.$$inline)) {
-                throw new Error(`'target' is a required option`);
-            }
-            super();
-        }
-        $destroy() {
-            super.$destroy();
-            this.$destroy = () => {
-                console.warn(`Component was already destroyed`); // eslint-disable-line no-console
-            };
-        }
-    }
-
     const subscriber_queue = [];
     /**
      * Create a `Writable` store that allows both updating and reading by subscription.
@@ -412,9 +336,6 @@ var gmxDomRF = (function (exports) {
     // };
     const leafletMap = writable(0);
     const gmxMap = writable(0);
-    const worker = writable(0);
-    const kvItems = writable(0);
-    const delItems = writable(0);
 
     /*jslint plusplus:true */
     function Geomag(model) {
@@ -869,7 +790,7 @@ var gmxDomRF = (function (exports) {
     var geoMag = new Geomag(cof).mag;
 
     const _self = self || window,
-    		serverBase = (_self.serverBase || 'maps.kosmosnimki.ru').replace(/http.*:\/\//, '').replace(/\//g, '');
+    		serverBase = (_self.serverBase || 'maps.kosmosnimki.ru').replace(/http.*:\/\//, '').replace(/\//g, '');
 
     let str = self.location.origin || '',
     	_protocol = str.substring(0, str.indexOf('/')),
@@ -1287,21 +1208,36 @@ var gmxDomRF = (function (exports) {
     	});
     };
 
-    const downloadLayer = (pars, opt) => {
-    	pars = pars || {};
-    	let hostName = pars.hostName || serverBase;
+    const downloadLayer = (node, id) => {
+    	node.setAttribute('href', new URL('/DownloadVector?format=csv&layer=' + id, location.protocol + '//' + serverBase));
+    return;
+    /*
+    		var par = utils.extend({}, queue.params, syncParams),
+    			options = queue.options || {},
+    			opt = utils.extend({
+    				method: 'post',
+    				headers: {'Content-type': 'application/x-www-form-urlencoded'}
+    				// mode: 'cors',
+    				// redirect: 'follow',
+    				// credentials: 'include'
+    			}, fetchOptions, options, {
+    				body: utils.getFormBody(par)
+    			});
     	return new Promise((resolve) => {
     		utils.getJson({
     			// url: '//' + hostName + '/DownloadLayer.ashx',
-    			url: '//' + hostName + '/DownloadVector',
+    			url: '//' + serverBase + '/DownloadVector',
     			// options: {},
-    			params: pars
+    			params: {
+    				format: 'csv',
+    				layer: id
+    			}
     		})
-    		// .then((json) => {
+    		.then((json) => {
     			// console.log('DownloadVector', json);
     			// let blob = new Blob([JSON.stringify(features, null, '\t')], {type: 'text/json;charset=utf-8;'});
     				//blob = new Blob([JSON.stringify(features, null, '\t')], {type: type});
-    			// ev.target.parentNode.setAttribute('href', window.URL.createObjectURL(blob));
+    			node.setAttribute('href', window.URL.createObjectURL(json.res));
     			
     			// if (json.res.Status === 'ok') {
     				// chkTask(json.res.Result.TaskID)
@@ -1317,9 +1253,10 @@ var gmxDomRF = (function (exports) {
     				// })
     				// .catch(err => console.log(err));
     			// }
-    		// })
+    		})
     		.catch(err => console.log(err));
     	});
+    	*/
     };
 
     var Requests = {
@@ -1335,71 +1272,7 @@ var gmxDomRF = (function (exports) {
     	// getLayerItems
     };
 
-    let dataWorker = null;
-    worker.subscribe(value => { dataWorker = value; });
-
-    const Utils = {
-    	isFilterLayer: (it) => {
-    		let out = false;
-
-    		if (it._gmx) {
-    			let attr = it._gmx.tileAttributeTypes;
-    			out = attr.snap && attr.FRSTAT;
-    		}
-    		return out;
-    	},
-    	saveState: (data, key) => {
-    		key = key || 'Forest_';
-    		window.localStorage.setItem(key, JSON.stringify(data));
-    	},
-    	getState: key => {
-    		key = key || 'Forest_';
-    		return JSON.parse(window.localStorage.getItem(key)) || {};
-    	},
-
-    	isKvartalLayer: (it) => {
-    		let out = false;
-    		if (it._gmx) {
-    			let attr = it._gmx.tileAttributeTypes;
-    			out = attr.kv;
-    		}
-    		return out;
-    	},
-    	getLayerItems: (it, opt) => {
-    		dataWorker.onmessage = (res) => {
-    			let data = res.data,
-    				cmd = data.cmd,
-    				json = data.out,
-    				type = opt && opt.type || 'delynka';
-
-    			if (cmd === 'getLayerItems') {
-    				if (type === 'delynka') {
-    					delItems.set(json.Result);
-    				} else {
-    					kvItems.set(json.Result);
-    				}
-    			}
-    			// console.log('onmessage', res);
-    		};
-    		dataWorker.postMessage({cmd: 'getLayerItems', layerID: it.options.layerID, opt: opt});
-    	},
-    	getReportsCount: (opt) => {
-    		// dataWorker.onmessage = (res) => {
-    			// let data = res.data,
-    				// cmd = data.cmd,
-    				// json = data.out;
-
-    			// if (cmd === 'getReportsCount') {
-    				// reportsCount.set(json);
-    			// }
-    		// };
-    		// dataWorker.postMessage({cmd: 'getReportsCount', opt: opt});
-    	}
-    };
-
     /* src\Filters\Filters.svelte generated by Svelte v3.12.1 */
-
-    const file = "src\\Filters\\Filters.svelte";
 
     function get_each_context_1(ctx, list, i) {
     	const child_ctx = Object.create(ctx);
@@ -1419,47 +1292,44 @@ var gmxDomRF = (function (exports) {
     	return child_ctx;
     }
 
-    // (248:4) {#each Object.keys(filterLayers) as k}
+    // (220:4) {#each Object.keys(filterLayers) as k}
     function create_each_block_2(ctx) {
     	var option, t_value = ctx.filterLayers[ctx.k].title + "", t, option_value_value;
 
-    	const block = {
-    		c: function create() {
+    	return {
+    		c() {
     			option = element("option");
     			t = text(t_value);
     			option.__value = option_value_value = ctx.filterLayers[ctx.k].id;
     			option.value = option.__value;
-    			add_location(option, file, 248, 4, 8071);
     		},
 
-    		m: function mount(target, anchor) {
-    			insert_dev(target, option, anchor);
-    			append_dev(option, t);
+    		m(target, anchor) {
+    			insert(target, option, anchor);
+    			append(option, t);
     		},
 
-    		p: function update(changed, ctx) {
+    		p(changed, ctx) {
     			if ((changed.filterLayers) && t_value !== (t_value = ctx.filterLayers[ctx.k].title + "")) {
-    				set_data_dev(t, t_value);
+    				set_data(t, t_value);
     			}
 
     			if ((changed.filterLayers) && option_value_value !== (option_value_value = ctx.filterLayers[ctx.k].id)) {
-    				prop_dev(option, "__value", option_value_value);
+    				option.__value = option_value_value;
     			}
 
     			option.value = option.__value;
     		},
 
-    		d: function destroy(detaching) {
+    		d(detaching) {
     			if (detaching) {
-    				detach_dev(option);
+    				detach(option);
     			}
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_each_block_2.name, type: "each", source: "(248:4) {#each Object.keys(filterLayers) as k}", ctx });
-    	return block;
     }
 
-    // (255:0) {#if currLayer}
+    // (227:0) {#if currLayer}
     function create_if_block(ctx) {
     	var t0, div1, div0, input, label, t2, dispose;
 
@@ -1473,8 +1343,8 @@ var gmxDomRF = (function (exports) {
 
     	var if_block = (ctx.currDrawingObj) && create_if_block_1(ctx);
 
-    	const block = {
-    		c: function create() {
+    	return {
+    		c() {
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
@@ -1487,38 +1357,34 @@ var gmxDomRF = (function (exports) {
     			label.textContent = "Поиск по пересечению с объектом";
     			t2 = space();
     			if (if_block) if_block.c();
-    			attr_dev(input, "type", "checkbox");
-    			attr_dev(input, "name", "checkboxG4");
-    			attr_dev(input, "id", "checkboxG4");
-    			attr_dev(input, "class", "css-checkbox2");
-    			attr_dev(input, "title", "Нарисовать или выбрать объект по правой кнопке на вершине");
-    			add_location(input, file, 273, 5, 8696);
-    			attr_dev(label, "for", "checkboxG4");
-    			attr_dev(label, "class", "css-label2 radGroup1");
-    			add_location(label, file, 273, 205, 8896);
-    			attr_dev(div0, "class", "checkbox");
-    			add_location(div0, file, 272, 2, 8667);
-    			attr_dev(div1, "class", "row");
-    			add_location(div1, file, 271, 1, 8646);
-    			dispose = listen_dev(input, "change", ctx.createDrawing);
+    			attr(input, "type", "checkbox");
+    			attr(input, "name", "checkboxG4");
+    			attr(input, "id", "checkboxG4");
+    			attr(input, "class", "css-checkbox2");
+    			attr(input, "title", "Нарисовать или выбрать объект по правой кнопке на вершине");
+    			attr(label, "for", "checkboxG4");
+    			attr(label, "class", "css-label2 radGroup1");
+    			attr(div0, "class", "checkbox");
+    			attr(div1, "class", "row");
+    			dispose = listen(input, "change", ctx.createDrawing);
     		},
 
-    		m: function mount(target, anchor) {
+    		m(target, anchor) {
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].m(target, anchor);
     			}
 
-    			insert_dev(target, t0, anchor);
-    			insert_dev(target, div1, anchor);
-    			append_dev(div1, div0);
-    			append_dev(div0, input);
+    			insert(target, t0, anchor);
+    			insert(target, div1, anchor);
+    			append(div1, div0);
+    			append(div0, input);
     			ctx.input_binding(input);
-    			append_dev(div0, label);
-    			append_dev(div0, t2);
+    			append(div0, label);
+    			append(div0, t2);
     			if (if_block) if_block.m(div0, null);
     		},
 
-    		p: function update(changed, ctx) {
+    		p(changed, ctx) {
     			if (changed.currLayer) {
     				each_value = Object.keys(ctx.currLayer.filters);
 
@@ -1555,12 +1421,12 @@ var gmxDomRF = (function (exports) {
     			}
     		},
 
-    		d: function destroy(detaching) {
+    		d(detaching) {
     			destroy_each(each_blocks, detaching);
 
     			if (detaching) {
-    				detach_dev(t0);
-    				detach_dev(div1);
+    				detach(t0);
+    				detach(div1);
     			}
 
     			ctx.input_binding(null);
@@ -1568,11 +1434,9 @@ var gmxDomRF = (function (exports) {
     			dispose();
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_if_block.name, type: "if", source: "(255:0) {#if currLayer}", ctx });
-    	return block;
     }
 
-    // (261:2) {#if currLayer.filters[field].datalist}
+    // (233:2) {#if currLayer.filters[field].datalist}
     function create_if_block_2(ctx) {
     	var datalist, datalist_id_value;
 
@@ -1584,26 +1448,25 @@ var gmxDomRF = (function (exports) {
     		each_blocks[i] = create_each_block_1(get_each_context_1(ctx, each_value_1, i));
     	}
 
-    	const block = {
-    		c: function create() {
+    	return {
+    		c() {
     			datalist = element("datalist");
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].c();
     			}
-    			attr_dev(datalist, "id", datalist_id_value = ctx.field);
-    			add_location(datalist, file, 261, 3, 8463);
+    			attr(datalist, "id", datalist_id_value = ctx.field);
     		},
 
-    		m: function mount(target, anchor) {
-    			insert_dev(target, datalist, anchor);
+    		m(target, anchor) {
+    			insert(target, datalist, anchor);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].m(datalist, null);
     			}
     		},
 
-    		p: function update(changed, ctx) {
+    		p(changed, ctx) {
     			if (changed.currLayer) {
     				each_value_1 = ctx.currLayer.filters[ctx.field].datalist;
 
@@ -1627,64 +1490,59 @@ var gmxDomRF = (function (exports) {
     			}
 
     			if ((changed.currLayer) && datalist_id_value !== (datalist_id_value = ctx.field)) {
-    				attr_dev(datalist, "id", datalist_id_value);
+    				attr(datalist, "id", datalist_id_value);
     			}
     		},
 
-    		d: function destroy(detaching) {
+    		d(detaching) {
     			if (detaching) {
-    				detach_dev(datalist);
+    				detach(datalist);
     			}
 
     			destroy_each(each_blocks, detaching);
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_if_block_2.name, type: "if", source: "(261:2) {#if currLayer.filters[field].datalist}", ctx });
-    	return block;
     }
 
-    // (263:4) {#each currLayer.filters[field].datalist as pt}
+    // (235:4) {#each currLayer.filters[field].datalist as pt}
     function create_each_block_1(ctx) {
     	var option, option_value_value;
 
-    	const block = {
-    		c: function create() {
+    	return {
+    		c() {
     			option = element("option");
     			option.__value = option_value_value = ctx.pt.value;
     			option.value = option.__value;
-    			add_location(option, file, 263, 4, 8545);
     		},
 
-    		m: function mount(target, anchor) {
-    			insert_dev(target, option, anchor);
+    		m(target, anchor) {
+    			insert(target, option, anchor);
     		},
 
-    		p: function update(changed, ctx) {
+    		p(changed, ctx) {
     			if ((changed.currLayer) && option_value_value !== (option_value_value = ctx.pt.value)) {
-    				prop_dev(option, "__value", option_value_value);
+    				option.__value = option_value_value;
     			}
 
     			option.value = option.__value;
     		},
 
-    		d: function destroy(detaching) {
+    		d(detaching) {
     			if (detaching) {
-    				detach_dev(option);
+    				detach(option);
     			}
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_each_block_1.name, type: "each", source: "(263:4) {#each currLayer.filters[field].datalist as pt}", ctx });
-    	return block;
     }
 
-    // (256:1) {#each Object.keys(currLayer.filters) as field}
+    // (228:1) {#each Object.keys(currLayer.filters) as field}
     function create_each_block(ctx) {
-    	var div2, div0, t0_value = ctx.currLayer.filters[ctx.field].title + "", t0, t1, div1, input, input_name_value, input_list_value, t2;
+    	var div2, div0, t0_value = ctx.currLayer.filters[ctx.field].title + "", t0, t1, div1, input, input_name_value, input_list_value, t2, dispose;
 
     	var if_block = (ctx.currLayer.filters[ctx.field].datalist) && create_if_block_2(ctx);
 
-    	const block = {
-    		c: function create() {
+    	return {
+    		c() {
     			div2 = element("div");
     			div0 = element("div");
     			t0 = text(t0_value);
@@ -1693,40 +1551,37 @@ var gmxDomRF = (function (exports) {
     			input = element("input");
     			t2 = space();
     			if (if_block) if_block.c();
-    			attr_dev(div0, "class", "title");
-    			add_location(div0, file, 257, 2, 8279);
-    			attr_dev(input, "type", "text");
-    			attr_dev(input, "name", input_name_value = ctx.field);
-    			attr_dev(input, "list", input_list_value = ctx.field);
-    			add_location(input, file, 259, 3, 8364);
-    			attr_dev(div1, "class", "input");
-    			add_location(div1, file, 258, 2, 8340);
-    			attr_dev(div2, "class", "row");
-    			add_location(div2, file, 256, 1, 8258);
+    			attr(div0, "class", "title");
+    			attr(input, "type", "text");
+    			attr(input, "name", input_name_value = ctx.field);
+    			attr(input, "list", input_list_value = ctx.field);
+    			attr(div1, "class", "input");
+    			attr(div2, "class", "row");
+    			dispose = listen(input, "change", ctx.clearData);
     		},
 
-    		m: function mount(target, anchor) {
-    			insert_dev(target, div2, anchor);
-    			append_dev(div2, div0);
-    			append_dev(div0, t0);
-    			append_dev(div2, t1);
-    			append_dev(div2, div1);
-    			append_dev(div1, input);
-    			append_dev(div1, t2);
+    		m(target, anchor) {
+    			insert(target, div2, anchor);
+    			append(div2, div0);
+    			append(div0, t0);
+    			append(div2, t1);
+    			append(div2, div1);
+    			append(div1, input);
+    			append(div1, t2);
     			if (if_block) if_block.m(div1, null);
     		},
 
-    		p: function update(changed, ctx) {
+    		p(changed, ctx) {
     			if ((changed.currLayer) && t0_value !== (t0_value = ctx.currLayer.filters[ctx.field].title + "")) {
-    				set_data_dev(t0, t0_value);
+    				set_data(t0, t0_value);
     			}
 
     			if ((changed.currLayer) && input_name_value !== (input_name_value = ctx.field)) {
-    				attr_dev(input, "name", input_name_value);
+    				attr(input, "name", input_name_value);
     			}
 
     			if ((changed.currLayer) && input_list_value !== (input_list_value = ctx.field)) {
-    				attr_dev(input, "list", input_list_value);
+    				attr(input, "list", input_list_value);
     			}
 
     			if (ctx.currLayer.filters[ctx.field].datalist) {
@@ -1743,53 +1598,49 @@ var gmxDomRF = (function (exports) {
     			}
     		},
 
-    		d: function destroy(detaching) {
+    		d(detaching) {
     			if (detaching) {
-    				detach_dev(div2);
+    				detach(div2);
     			}
 
     			if (if_block) if_block.d();
+    			dispose();
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_each_block.name, type: "each", source: "(256:1) {#each Object.keys(currLayer.filters) as field}", ctx });
-    	return block;
     }
 
-    // (275:3) {#if currDrawingObj}
+    // (247:3) {#if currDrawingObj}
     function create_if_block_1(ctx) {
     	var span, t;
 
-    	const block = {
-    		c: function create() {
+    	return {
+    		c() {
     			span = element("span");
     			t = text(ctx.currDrawingObjArea);
-    			attr_dev(span, "class", "currDrawingObjArea");
-    			add_location(span, file, 275, 3, 9018);
+    			attr(span, "class", "currDrawingObjArea");
     		},
 
-    		m: function mount(target, anchor) {
-    			insert_dev(target, span, anchor);
-    			append_dev(span, t);
+    		m(target, anchor) {
+    			insert(target, span, anchor);
+    			append(span, t);
     		},
 
-    		p: function update(changed, ctx) {
+    		p(changed, ctx) {
     			if (changed.currDrawingObjArea) {
-    				set_data_dev(t, ctx.currDrawingObjArea);
+    				set_data(t, ctx.currDrawingObjArea);
     			}
     		},
 
-    		d: function destroy(detaching) {
+    		d(detaching) {
     			if (detaching) {
-    				detach_dev(span);
+    				detach(span);
     			}
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_if_block_1.name, type: "if", source: "(275:3) {#if currDrawingObj}", ctx });
-    	return block;
     }
 
     function create_fragment(ctx) {
-    	var div4, div2, div0, t1, div1, select, option, t2, t3, div3, button0, t5, a, button1, div3_disabled_value, dispose;
+    	var div4, div2, div0, t1, div1, select, option, t2, t3, div3, button0, t5, a, iframe_1, t6, button1, a_class_value, div3_class_value, dispose;
 
     	let each_value_2 = Object.keys(ctx.filterLayers);
 
@@ -1801,8 +1652,8 @@ var gmxDomRF = (function (exports) {
 
     	var if_block = (ctx.currLayer) && create_if_block(ctx);
 
-    	const block = {
-    		c: function create() {
+    	return {
+    		c() {
     			div4 = element("div");
     			div2 = element("div");
     			div0 = element("div");
@@ -1824,70 +1675,66 @@ var gmxDomRF = (function (exports) {
     			button0.textContent = "Создать слой по фильтру";
     			t5 = space();
     			a = element("a");
+    			iframe_1 = element("iframe");
+    			t6 = space();
     			button1 = element("button");
     			button1.textContent = "Экспорт в Excel";
-    			attr_dev(div0, "class", "title");
-    			add_location(div0, file, 243, 2, 7901);
+    			attr(div0, "class", "title");
     			option.__value = "";
     			option.value = option.__value;
-    			add_location(option, file, 246, 4, 8002);
-    			add_location(select, file, 245, 3, 7964);
-    			attr_dev(div1, "class", "input");
-    			add_location(div1, file, 244, 2, 7940);
-    			attr_dev(div2, "class", "row hidden");
-    			add_location(div2, file, 242, 1, 7849);
-    			attr_dev(button0, "class", "button");
-    			add_location(button0, file, 282, 2, 9205);
-    			attr_dev(button1, "class", "button");
-    			add_location(button1, file, 284, 2, 9356);
-    			attr_dev(a, "href", "test");
-    			attr_dev(a, "download", "features.geojson");
-    			attr_dev(a, "target", "_blank");
-    			add_location(a, file, 283, 0, 9293);
-    			attr_dev(div3, "class", "bottom");
-    			attr_dev(div3, "disabled", div3_disabled_value = ctx.currLayer ? false : true);
-    			add_location(div3, file, 281, 1, 9120);
-    			attr_dev(div4, "class", "sidebar-opened");
-    			add_location(div4, file, 241, 0, 7798);
+    			attr(div1, "class", "input");
+    			attr(div2, "class", "row hidden");
+    			attr(button0, "class", "button");
+    			attr(iframe_1, "name", "download");
+    			attr(iframe_1, "title", "");
+    			attr(iframe_1, "class", "hidden");
+    			attr(button1, "class", "button");
+    			attr(a, "href", "load");
+    			attr(a, "download", "features.geojson");
+    			attr(a, "target", "download");
+    			attr(a, "onload", ctx.setHidden);
+    			attr(a, "class", a_class_value = "exportHref " + (ctx.filteredLayerID ? '' : 'hidden'));
+    			attr(div3, "class", div3_class_value = "bottom " + (ctx.currLayer ? '' : 'hidden'));
+    			attr(div4, "class", "sidebar-opened");
 
     			dispose = [
-    				listen_dev(select, "change", ctx.changeLayer),
-    				listen_dev(button0, "click", ctx.createFilterLayer),
-    				listen_dev(button1, "click", ctx.createExport)
+    				listen(window, "focus", ctx.setHidden),
+    				listen(select, "change", ctx.changeLayer),
+    				listen(button0, "click", ctx.createFilterLayer),
+    				listen(iframe_1, "focus", ctx.clearData),
+    				listen(button1, "click", ctx.createExport)
     			];
     		},
 
-    		l: function claim(nodes) {
-    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
-    		},
-
-    		m: function mount(target, anchor) {
-    			insert_dev(target, div4, anchor);
-    			append_dev(div4, div2);
-    			append_dev(div2, div0);
-    			append_dev(div2, t1);
-    			append_dev(div2, div1);
-    			append_dev(div1, select);
-    			append_dev(select, option);
+    		m(target, anchor) {
+    			insert(target, div4, anchor);
+    			append(div4, div2);
+    			append(div2, div0);
+    			append(div2, t1);
+    			append(div2, div1);
+    			append(div1, select);
+    			append(select, option);
 
     			for (let i = 0; i < each_blocks.length; i += 1) {
     				each_blocks[i].m(select, null);
     			}
 
     			ctx.div2_binding(div2);
-    			append_dev(div4, t2);
+    			append(div4, t2);
     			if (if_block) if_block.m(div4, null);
-    			append_dev(div4, t3);
-    			append_dev(div4, div3);
-    			append_dev(div3, button0);
-    			append_dev(div3, t5);
-    			append_dev(div3, a);
-    			append_dev(a, button1);
-    			ctx.div3_binding(div3);
+    			append(div4, t3);
+    			append(div4, div3);
+    			append(div3, button0);
+    			append(div3, t5);
+    			append(div3, a);
+    			append(a, iframe_1);
+    			ctx.iframe_1_binding(iframe_1);
+    			append(a, t6);
+    			append(a, button1);
     			ctx.div4_binding(div4);
     		},
 
-    		p: function update(changed, ctx) {
+    		p(changed, ctx) {
     			if (changed.filterLayers) {
     				each_value_2 = Object.keys(ctx.filterLayers);
 
@@ -1923,41 +1770,37 @@ var gmxDomRF = (function (exports) {
     				if_block = null;
     			}
 
-    			if ((changed.currLayer) && div3_disabled_value !== (div3_disabled_value = ctx.currLayer ? false : true)) {
-    				attr_dev(div3, "disabled", div3_disabled_value);
+    			if ((changed.filteredLayerID) && a_class_value !== (a_class_value = "exportHref " + (ctx.filteredLayerID ? '' : 'hidden'))) {
+    				attr(a, "class", a_class_value);
+    			}
+
+    			if ((changed.currLayer) && div3_class_value !== (div3_class_value = "bottom " + (ctx.currLayer ? '' : 'hidden'))) {
+    				attr(div3, "class", div3_class_value);
     			}
     		},
 
     		i: noop,
     		o: noop,
 
-    		d: function destroy(detaching) {
+    		d(detaching) {
     			if (detaching) {
-    				detach_dev(div4);
+    				detach(div4);
     			}
 
     			destroy_each(each_blocks, detaching);
 
     			ctx.div2_binding(null);
     			if (if_block) if_block.d();
-    			ctx.div3_binding(null);
+    			ctx.iframe_1_binding(null);
     			ctx.div4_binding(null);
     			run_all(dispose);
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_fragment.name, type: "component", source: "", ctx });
-    	return block;
     }
 
     function instance($$self, $$props, $$invalidate) {
-    	
-    	// import SelectInput from './SelectInput.svelte';
-
-    const stateStorage = Utils.getState();
-    let changedParams = {test: 23};
 
     let waitingIcon = null;
-    let exportButton = null;
     let content = null;
 
     let filterLayers = {};
@@ -2030,9 +1873,8 @@ var gmxDomRF = (function (exports) {
     		if (out.id) {
     			$$invalidate('filterLayers', filterLayers[id] = out, filterLayers);
     		}
-    		console.log('gmxMap', it);
+    		// console.log('gmxMap', it);
     	});
-    	// */
     });
 
     let currLayer = null;
@@ -2040,6 +1882,7 @@ var gmxDomRF = (function (exports) {
     	let id = ev ? ev.target.selectedOptions[0].value : null,
     		_gmx = gmxMap$1.layersByID[id];
 
+    	$$invalidate('currLayer', currLayer = null);
     	waitingIcon.classList.remove('hidden');
     	if (id) {
     		getColumnStat(id).then((arr) => {
@@ -2047,24 +1890,22 @@ var gmxDomRF = (function (exports) {
     			arr.forEach((it) => {
     				$$invalidate('currLayer', currLayer.filters[it.field].datalist = it.datalist, currLayer);
     			});
-    			waitingIcon.classList.add('hidden');
+    			setHidden();
+    			// waitingIcon.classList.add('hidden');
     			// console.log('________', currLayer, arr)
     		});
-    	} else {
-    		$$invalidate('currLayer', currLayer = null);
     	}
-    console.log('changeLayer', id, filterLayers[id], gmxMap$1.layersByID[id]);
+    	// console.log('changeLayer', id, filterLayers[id], gmxMap.layersByID[id]);
     };
 
     let drawingButton = null;
     let currDrawingObj = null;
     let currDrawingObjArea = null;
     const privaz = (ev, dObj) => {
-    console.log('privaz', ev, dObj);
-    	$$invalidate('currDrawingObj', currDrawingObj = dObj);
-    	$$invalidate('currDrawingObjArea', currDrawingObjArea = dObj.getSummary());
-    	// currDrawingObjArea = L.gmxUtil.geoJSONGetArea(dObj.toGeoJSON());
+    	$$invalidate('currDrawingObj', currDrawingObj = dObj || ev.object);
+    	$$invalidate('currDrawingObjArea', currDrawingObjArea = currDrawingObj.getSummary());
     	
+    	clearData();
     	$$invalidate('drawingButton', drawingButton.checked = true, drawingButton);
     };
 
@@ -2087,54 +1928,32 @@ var gmxDomRF = (function (exports) {
     		let drawingControl = map.gmxControlsManager.get('drawing'),
     			pIcon = drawingControl.getIconById('Polygon');
     		drawingControl.setActiveIcon(pIcon, true);
-    		//button.classList.add('drawState');
-    		map.gmxDrawing.on('drawstop', (ev) => {
-    			privaz(null, ev.object);
-    console.log('drawstop', ev );
-    			//button.classList.remove('drawState');
-    		}, this);
-    		//map.options.snaping = 30;
+    		map.gmxDrawing.on('drawstop', privaz, this);
+    		// map.gmxDrawing.on('drawstop', (ev) => {
+    			// privaz(null, ev.object);
+    		// }, this);
     		map.gmxDrawing.bringToFront();
-    		// map.gmxDrawing.create('Polygon', {
-    			// lineStyle: {color: 'green'},
-    			// pointStyle: {color: 'green'}
-    		// });
     	} else {
     		$$invalidate('currDrawingObj', currDrawingObj = $$invalidate('currDrawingObjArea', currDrawingObjArea = null));
     		cont.style.cursor = '';
     		button.classList.remove('drawState');
-    		map.gmxDrawing.off('drawstop', () => {
-    console.log('drawstop1', ev );
-    			//button.classList.remove('drawState');
-    		}, this);
+    		map.gmxDrawing.off('drawstop', privaz, this);
     		map.gmxDrawing.create();
     	}
     };
 
-    //let LayerID = res.content.properties.LayerID;
-    const createExport = (ev) => {
-    	let nodes = content.getElementsByTagName('input'),
-    		id = currLayer.id;
-     
-    	waitingIcon.classList.remove('hidden');
-    	Requests.downloadLayer({
-    		//columns: 
-    		// format: 'csv',
-    		// t: currLayer.id
-    		format: 'csv',
-    		layer: currLayer.id
-    	}).then((res) => {
-    		waitingIcon.classList.add('hidden');
-    			//let blob = new Blob([res.res], {type: 'text/json;charset=utf-8;'});
-    				//blob = new Blob([JSON.stringify(features, null, '\t')], {type: type});
-    		ev.target.parentNode.setAttribute('href', window.URL.createObjectURL(res.res));
-     console.log('downloadLayer 111 ________', res);
+    const setHidden = (ev) => {
+    // console.log('setHidden', ev );
+    	waitingIcon.classList.add('hidden');};
 
-    	});
-    	console.log('createExport', currLayer );
-    // t: F5DA3E0F4040448887353A1DB2D22234
-    // format: csv
-    // columns: [{"Value":"[gmx_id]","Alias":"gmx_id"},{"Value":"[Apartment]","Alias":"Apartment"},{"Value":"[CadCost]","Alias":"CadCost"},{"Value":"[Category]","Alias":"Category"},{"Value":"[Code_KLADR]","Alias":"Code_KLADR"},{"Value":"[Code_OKATO]","Alias":"Code_OKATO"},{"Value":"[DateCreate]","Alias":"DateCreate"},{"Value":"[Note]","Alias":"Note"},{"Value":"[Block_KN]","Alias":"Block_KN"},{"Value":"[SnglUseKN]","Alias":"SnglUseKN"},{"Value":"[PostalCode]","Alias":"PostalCode"},{"Value":"[Region]","Alias":"Region"},{"Value":"[Assign]","Alias":"Assign"},{"Value":"[KeyTypOns]","Alias":"KeyTypOns"}
+    let filteredLayerID = '';
+    const clearData = () => {
+    	$$invalidate('filteredLayerID', filteredLayerID = '');
+    };
+    let iframe = null;
+    const createExport = (ev) => {
+    	// waitingIcon.classList.remove('hidden');
+    	Requests.downloadLayer(ev.target.parentNode, filteredLayerID);
     };
 
     const createFilterLayer = (ev) => {
@@ -2158,27 +1977,26 @@ var gmxDomRF = (function (exports) {
     	pars.styles = props.styles;
     	pars.Description = props.description || '';
     	pars.Copyright = props.Copyright || '';
-    	// pars.IsRasterCatalog = false;
-    	// pars.TemporalLayer = false;
 
-    	let w = 'WHERE (' + arr.join(') AND (') + ')';
-    	if (currDrawingObj) {
-    		w += ' AND intersects([geomixergeojson], GeometryFromGeoJson(\'' + JSON.stringify(currDrawingObj.toGeoJSON()) + '\', 4326))';
+    	let w = '',
+    		alen = arr.length;
+    	if (currDrawingObj || alen) {
+    		w = 'WHERE ';
+    		if (alen) {
+    			w += '(' + arr.join(') AND (') + ')';
+    		}
+    		if (currDrawingObj) {
+    			w += alen ? ' AND' : '';
+    			w += ' intersects([geomixergeojson], GeometryFromGeoJson(\'' + JSON.stringify(currDrawingObj.toGeoJSON()) + '\', 4326))';
+    		}
     	}
     	pars.Sql = 'select [geomixergeojson] as gmx_geometry, ' + currLayer.attr + ', "gmx_id" as "gmx_id" from [' + id + '] ' + w;
 
     	Requests.createFilterLayer(pars).then((res) => {
-    		waitingIcon.classList.add('hidden');
-    console.log('afterAll 111 ________', res);
-    		// let LayerID = res.content.properties.LayerID;
-    		// ,
-    			// it = gmxMap.layersByID[LayerID];
-    		//it.setStyles(layer.getStyles());
-    		// let div = $(window._queryMapLayers.buildedTree).find("div[LayerID='" + LayerID + "']")[0];
-    		// div.gmxProperties.content.properties.styles = props.styles;
-    		// window._mapHelper.updateMapStyles(props.styles, LayerID);
+    		setHidden();
+    		$$invalidate('filteredLayerID', filteredLayerID = res.content.properties.LayerID);
     	});
-    //	console.log('createFilterLayer', exportButton, content, arr.join(' , ') );
+    	//	console.log('createFilterLayer', exportButton, content, arr.join(' , ') );
     };
 
     	function div2_binding($$value) {
@@ -2193,9 +2011,9 @@ var gmxDomRF = (function (exports) {
     		});
     	}
 
-    	function div3_binding($$value) {
+    	function iframe_1_binding($$value) {
     		binding_callbacks[$$value ? 'unshift' : 'push'](() => {
-    			$$invalidate('exportButton', exportButton = $$value);
+    			$$invalidate('iframe', iframe = $$value);
     		});
     	}
 
@@ -2205,28 +2023,8 @@ var gmxDomRF = (function (exports) {
     		});
     	}
 
-    	$$self.$capture_state = () => {
-    		return {};
-    	};
-
-    	$$self.$inject_state = $$props => {
-    		if ('changedParams' in $$props) changedParams = $$props.changedParams;
-    		if ('waitingIcon' in $$props) $$invalidate('waitingIcon', waitingIcon = $$props.waitingIcon);
-    		if ('exportButton' in $$props) $$invalidate('exportButton', exportButton = $$props.exportButton);
-    		if ('content' in $$props) $$invalidate('content', content = $$props.content);
-    		if ('filterLayers' in $$props) $$invalidate('filterLayers', filterLayers = $$props.filterLayers);
-    		if ('gmxMap' in $$props) gmxMap$1 = $$props.gmxMap;
-    		if ('currLayer' in $$props) $$invalidate('currLayer', currLayer = $$props.currLayer);
-    		if ('drawingButton' in $$props) $$invalidate('drawingButton', drawingButton = $$props.drawingButton);
-    		if ('currDrawingObj' in $$props) $$invalidate('currDrawingObj', currDrawingObj = $$props.currDrawingObj);
-    		if ('currDrawingObjArea' in $$props) $$invalidate('currDrawingObjArea', currDrawingObjArea = $$props.currDrawingObjArea);
-    		if ('map' in $$props) map = $$props.map;
-    		if ('drawingChecked' in $$props) drawingChecked = $$props.drawingChecked;
-    	};
-
     	return {
     		waitingIcon,
-    		exportButton,
     		content,
     		filterLayers,
     		currLayer,
@@ -2235,28 +2033,29 @@ var gmxDomRF = (function (exports) {
     		currDrawingObj,
     		currDrawingObjArea,
     		createDrawing,
+    		setHidden,
+    		filteredLayerID,
+    		clearData,
+    		iframe,
     		createExport,
     		createFilterLayer,
     		div2_binding,
     		input_binding,
-    		div3_binding,
+    		iframe_1_binding,
     		div4_binding
     	};
     }
 
-    class Filters extends SvelteComponentDev {
+    class Filters extends SvelteComponent {
     	constructor(options) {
-    		super(options);
+    		super();
     		init(this, options, instance, create_fragment, safe_not_equal, []);
-    		dispatch_dev("SvelteRegisterComponent", { component: this, tagName: "Filters", options, id: create_fragment.name });
     	}
     }
 
     /* src\App.svelte generated by Svelte v3.12.1 */
 
-    const file$1 = "src\\App.svelte";
-
-    // (66:0) {#if tab === 'filters'}
+    // (43:0) {#if tab === 'filters'}
     function create_if_block$1(ctx) {
     	var updating_openSidebar, current;
 
@@ -2270,21 +2069,21 @@ var gmxDomRF = (function (exports) {
     	if (ctx.openSidebar !== void 0) {
     		filters_props.openSidebar = ctx.openSidebar;
     	}
-    	var filters = new Filters({ props: filters_props, $$inline: true });
+    	var filters = new Filters({ props: filters_props });
 
     	binding_callbacks.push(() => bind(filters, 'openSidebar', filters_openSidebar_binding));
 
-    	const block = {
-    		c: function create() {
+    	return {
+    		c() {
     			filters.$$.fragment.c();
     		},
 
-    		m: function mount(target, anchor) {
+    		m(target, anchor) {
     			mount_component(filters, target, anchor);
     			current = true;
     		},
 
-    		p: function update(changed, ctx) {
+    		p(changed, ctx) {
     			var filters_changes = {};
     			if (!updating_openSidebar && changed.openSidebar) {
     				filters_changes.openSidebar = ctx.openSidebar;
@@ -2292,24 +2091,22 @@ var gmxDomRF = (function (exports) {
     			filters.$set(filters_changes);
     		},
 
-    		i: function intro(local) {
+    		i(local) {
     			if (current) return;
     			transition_in(filters.$$.fragment, local);
 
     			current = true;
     		},
 
-    		o: function outro(local) {
+    		o(local) {
     			transition_out(filters.$$.fragment, local);
     			current = false;
     		},
 
-    		d: function destroy(detaching) {
+    		d(detaching) {
     			destroy_component(filters, detaching);
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_if_block$1.name, type: "if", source: "(66:0) {#if tab === 'filters'}", ctx });
-    	return block;
     }
 
     function create_fragment$1(ctx) {
@@ -2317,8 +2114,8 @@ var gmxDomRF = (function (exports) {
 
     	var if_block = (ctx.tab === 'filters') && create_if_block$1(ctx);
 
-    	const block = {
-    		c: function create() {
+    	return {
+    		c() {
     			div = element("div");
     			ul = element("ul");
     			li = element("li");
@@ -2326,37 +2123,28 @@ var gmxDomRF = (function (exports) {
     			t0 = text("Фильтры");
     			t1 = space();
     			if (if_block) if_block.c();
-    			attr_dev(a, "class", a_class_value = "nav-link " + (ctx.tab === 'filters' ? 'active' : '-'));
-    			attr_dev(a, "href", "#tab");
-    			attr_dev(a, "data-toggle", "tab");
-    			add_location(a, file$1, 61, 3, 1705);
-    			attr_dev(li, "class", "nav-item");
-    			add_location(li, file$1, 60, 2, 1679);
-    			attr_dev(ul, "class", "nav nav-tabs");
-    			add_location(ul, file$1, 59, 1, 1650);
-    			attr_dev(div, "class", "domrf-plugin-container");
-    			add_location(div, file$1, 58, 0, 1611);
-    			dispose = listen_dev(a, "click", ctx.toggleSidebar);
+    			attr(a, "class", a_class_value = "nav-link " + (ctx.tab === 'filters' ? 'active' : '-'));
+    			attr(a, "href", "#filters");
+    			attr(li, "class", "nav-item");
+    			attr(ul, "class", "nav nav-tabs");
+    			attr(div, "class", "domrf-plugin-container");
+    			dispose = listen(a, "click", ctx.toggleSidebar);
     		},
 
-    		l: function claim(nodes) {
-    			throw new Error("options.hydrate only works if the component was compiled with the `hydratable: true` option");
-    		},
-
-    		m: function mount(target, anchor) {
-    			insert_dev(target, div, anchor);
-    			append_dev(div, ul);
-    			append_dev(ul, li);
-    			append_dev(li, a);
-    			append_dev(a, t0);
-    			append_dev(div, t1);
+    		m(target, anchor) {
+    			insert(target, div, anchor);
+    			append(div, ul);
+    			append(ul, li);
+    			append(li, a);
+    			append(a, t0);
+    			append(div, t1);
     			if (if_block) if_block.m(div, null);
     			current = true;
     		},
 
-    		p: function update(changed, ctx) {
+    		p(changed, ctx) {
     			if ((!current || changed.tab) && a_class_value !== (a_class_value = "nav-link " + (ctx.tab === 'filters' ? 'active' : '-'))) {
-    				attr_dev(a, "class", a_class_value);
+    				attr(a, "class", a_class_value);
     			}
 
     			if (ctx.tab === 'filters') {
@@ -2378,57 +2166,36 @@ var gmxDomRF = (function (exports) {
     			}
     		},
 
-    		i: function intro(local) {
+    		i(local) {
     			if (current) return;
     			transition_in(if_block);
     			current = true;
     		},
 
-    		o: function outro(local) {
+    		o(local) {
     			transition_out(if_block);
     			current = false;
     		},
 
-    		d: function destroy(detaching) {
+    		d(detaching) {
     			if (detaching) {
-    				detach_dev(div);
+    				detach(div);
     			}
 
     			if (if_block) if_block.d();
     			dispose();
     		}
     	};
-    	dispatch_dev("SvelteRegisterBlock", { block, id: create_fragment$1.name, type: "component", source: "", ctx });
-    	return block;
     }
 
     function instance$1($$self, $$props, $$invalidate) {
     	
-
-    	// let base_visible = false;
-    	// const unsubscribe = baseContVisible.subscribe(value => {
-    // console.log('sssssssss', value);
-    		// base_visible = value;
-    	// });
-    	// const unsubscribe1 = leafletMap.subscribe(value => {
-    // console.log('leafletMap', value);
-    	// });
     	
-        let { name = '', tab = 'filters' } = $$props;
-    // console.log('mapID vv33333v', name); // .mapID
+        let { tab = 'filters' } = $$props;
 
     	leafletMap.update(n => nsGmx.leafletMap);
     	gmxMap.update(n => nsGmx.gmxMap);
-
-    	let toggleBase = () => {
-    		baseContVisible.update(n => !n);
-    	};
-
-    	let sidebar_num = 1;
-    	let sidebar_visible = true;
     	let toggleSidebar = (ev) => {
-    // console.log('toggleSidebar', ev);
-    		sidebar_visible = !sidebar_visible;
     		let classList = ev.target.classList,
     			className = 'rotate180';
     		if (classList.contains(className)) {
@@ -2438,19 +2205,7 @@ var gmxDomRF = (function (exports) {
     		}
     	};
     	let openSidebar = (nm) => {
-    // console.log('op222enSidebar', sidebar_num, nm);
-    		if (sidebar_num === nm) { nm = 0; }
-    		sidebar_num = nm;
     	};
-
-        onMount (() => {
-    // console.log('mapIDnnnnnnnnnnnnn', name); // .mapID
-    	});
-
-    	const writable_props = ['name', 'tab'];
-    	Object.keys($$props).forEach(key => {
-    		if (!writable_props.includes(key) && !key.startsWith('$$')) console.warn(`<App> was created with unknown prop '${key}'`);
-    	});
 
     	function filters_openSidebar_binding(value) {
     		openSidebar = value;
@@ -2458,26 +2213,10 @@ var gmxDomRF = (function (exports) {
     	}
 
     	$$self.$set = $$props => {
-    		if ('name' in $$props) $$invalidate('name', name = $$props.name);
     		if ('tab' in $$props) $$invalidate('tab', tab = $$props.tab);
-    	};
-
-    	$$self.$capture_state = () => {
-    		return { name, tab, toggleBase, sidebar_num, sidebar_visible, toggleSidebar, openSidebar };
-    	};
-
-    	$$self.$inject_state = $$props => {
-    		if ('name' in $$props) $$invalidate('name', name = $$props.name);
-    		if ('tab' in $$props) $$invalidate('tab', tab = $$props.tab);
-    		if ('toggleBase' in $$props) toggleBase = $$props.toggleBase;
-    		if ('sidebar_num' in $$props) sidebar_num = $$props.sidebar_num;
-    		if ('sidebar_visible' in $$props) sidebar_visible = $$props.sidebar_visible;
-    		if ('toggleSidebar' in $$props) $$invalidate('toggleSidebar', toggleSidebar = $$props.toggleSidebar);
-    		if ('openSidebar' in $$props) $$invalidate('openSidebar', openSidebar = $$props.openSidebar);
     	};
 
     	return {
-    		name,
     		tab,
     		toggleSidebar,
     		openSidebar,
@@ -2485,27 +2224,10 @@ var gmxDomRF = (function (exports) {
     	};
     }
 
-    class App extends SvelteComponentDev {
+    class App extends SvelteComponent {
     	constructor(options) {
-    		super(options);
-    		init(this, options, instance$1, create_fragment$1, safe_not_equal, ["name", "tab"]);
-    		dispatch_dev("SvelteRegisterComponent", { component: this, tagName: "App", options, id: create_fragment$1.name });
-    	}
-
-    	get name() {
-    		throw new Error("<App>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set name(value) {
-    		throw new Error("<App>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	get tab() {
-    		throw new Error("<App>: Props cannot be read directly from the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
-    	}
-
-    	set tab(value) {
-    		throw new Error("<App>: Props cannot be set directly on the component instance unless compiling with 'accessors: true' or '<svelte:options accessors/>'");
+    		super();
+    		init(this, options, instance$1, create_fragment$1, safe_not_equal, ["tab"]);
     	}
     }
 

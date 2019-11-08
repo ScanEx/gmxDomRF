@@ -455,22 +455,59 @@ const createFilterLayer = (pars, opt) => {
 	});
 };
 
-const downloadLayer = (pars, opt) => {
-	pars = pars || {};
-	opt = opt || {};
-	let hostName = pars.hostName || serverBase;
+const downloadLayer = (node, id) => {
+	node.setAttribute('href', new URL('/DownloadVector?format=csv&layer=' + id, location.protocol + '//' + serverBase));
+return;
+		return fetch('//' + serverBase + '/DownloadVector?format=csv&layer=' + id, {
+			// method: 'post',
+			
+			// headers: {'Content-type': 'application/octet-stream'},
+			headers: {'Content-type': 'multipart/form-data'},
+			mode: 'cors',
+			redirect: 'follow',
+			credentials: 'include'
+		})
+		.then((req) => req.blob())
+		.then((blob) => {
+			//node.setAttribute('href', window.URL.createObjectURL(blob));
+			var url = window.URL.createObjectURL(blob);
+			window.location.href = url;
+			/*
+            var a = document.createElement('a');
+            a.href = url;
+            // a.download = "filename.xlsx";
+            document.body.appendChild(a); // we need to append the element to the dom -> otherwise it will not work in firefox
+            a.click();    
+            a.remove();  //afterwards we remove the element again  
+			*/
+		});
+/*
+		var par = utils.extend({}, queue.params, syncParams),
+			options = queue.options || {},
+			opt = utils.extend({
+				method: 'post',
+				headers: {'Content-type': 'application/x-www-form-urlencoded'}
+				// mode: 'cors',
+				// redirect: 'follow',
+				// credentials: 'include'
+			}, fetchOptions, options, {
+				body: utils.getFormBody(par)
+			});
 	return new Promise((resolve) => {
 		utils.getJson({
 			// url: '//' + hostName + '/DownloadLayer.ashx',
-			url: '//' + hostName + '/DownloadVector',
+			url: '//' + serverBase + '/DownloadVector',
 			// options: {},
-			params: pars
+			params: {
+				format: 'csv',
+				layer: id
+			}
 		})
-		// .then((json) => {
+		.then((json) => {
 			// console.log('DownloadVector', json);
 			// let blob = new Blob([JSON.stringify(features, null, '\t')], {type: 'text/json;charset=utf-8;'});
 				//blob = new Blob([JSON.stringify(features, null, '\t')], {type: type});
-			// ev.target.parentNode.setAttribute('href', window.URL.createObjectURL(blob));
+			node.setAttribute('href', window.URL.createObjectURL(json.res));
 			
 			// if (json.res.Status === 'ok') {
 				// chkTask(json.res.Result.TaskID)
@@ -486,9 +523,10 @@ const downloadLayer = (pars, opt) => {
 				// })
 				// .catch(err => console.log(err));
 			// }
-		// })
+		})
 		.catch(err => console.log(err));
 	});
+	*/
 };
 
 export default {
