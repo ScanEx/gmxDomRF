@@ -40,7 +40,7 @@
 					var menuId = 'forestView',
 						node = null,
 						treePane = iconSidebar.setPane(menuId, { createTab: createTabFunction({
-								icon: 's-forest-plugin',
+								icon: 's-domrf-plugin',
 								hint: 'Legend'
 							})
 						}),

@@ -790,7 +790,7 @@ var gmxDomRF = (function (exports) {
     var geoMag = new Geomag(cof).mag;
 
     const _self = self || window,
-    		serverBase = (_self.serverBase || 'maps.kosmosnimki.ru').replace(/http.*:\/\//, '').replace(/\//g, '');
+    		serverBase = (_self.serverBase || 'maps.kosmosnimki.ru').replace(/http.*:\/\//, '').replace(/\//g, '');
 
     let str = self.location.origin || '',
     	_protocol = str.substring(0, str.indexOf('/')),
