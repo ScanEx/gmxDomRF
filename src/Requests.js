@@ -431,7 +431,6 @@ const createFilterLayer = (pars, opt) => {
 			params: pars
 		})
 		.then((json) => {
-			//console.log('createFilterLayer________', json);
 			if (json.res.Status === 'ok') {
 				chkTask(json.res.Result.TaskID)
 				.then(json => {
@@ -448,7 +447,10 @@ const createFilterLayer = (pars, opt) => {
 						});
 					}
 				})
-				.catch(err => console.log(err));
+				.catch(err => {
+					console.log(err);
+					resolve({error: 'Ошибка', Result: json.Result, pars: pars});
+				});
 			}
 		})
 		.catch(err => console.log(err));

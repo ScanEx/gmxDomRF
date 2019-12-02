@@ -31,7 +31,8 @@
 }
 
 .domrf-plugin-container .nav-tabs {
-	border-bottom: 1px solid #ddd
+	border-bottom: 1px solid #ddd;
+	display: none;
 }
 
 .domrf-plugin-container .nav-tabs .nav-item {
@@ -71,6 +72,7 @@
     margin-left: 6px;
     padding: 4px;
     border-radius: 6px;
+	min-width: 52px;
 }
 
 .domrf-plugin-container .hidden,
@@ -94,7 +96,12 @@ body {
     flex-wrap: wrap;
     padding: 0 15px 15px 15px;
 }
-
+.domrf-plugin-container .row.error {
+    min-height: 20px;
+    margin: 17px;
+    text-align: center;
+    padding-top: 12px;
+}
 
 .domrf-plugin-container .title {
     font-style: normal;

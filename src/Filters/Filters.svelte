@@ -9,6 +9,7 @@
 // const stateStorage = Utils.getState();
 let changedParams = {test: 23};
 
+let error = null;
 let waitingIcon = null;
 let content = null;
 
@@ -27,13 +28,16 @@ const getColumnStat = (id) => {
 				// let f = {field: k, title: meta[k].Value};
 				// out.filters.push(f);
 					promiseArr.push(Requests.getColumnStat({id: id, column: k}).then((json) => {
+						if (json.res.ErrorInfo) {
+							console.warn(json);
+							return {};
+						}
 						let res = json.res.Result;
 						if (res && res.unique) {
 							//f.datalist = res.unique;
 							return {field: json.queue.params.column, datalist: res.unique};
 						}
 						return null;
-		// console.log('getCol111umnStat', out);
 					}));
 			} else {
 				console.warn('В слое:', id, ' поле:', k, ' не существует!');
@@ -97,10 +101,15 @@ const changeLayer = (ev) => {
 	if (id) {
 		getColumnStat(id).then((arr) => {
 			currLayer = filterLayers[id];
+			error = '';
 			arr.forEach((it) => {
-				currLayer.filters[it.field].datalist = it.datalist;
+				if (it.field) {
+					currLayer.filters[it.field].datalist = it.datalist;
+				} else {
+					error = 'Ошибка';
+				}
 			});
-			setHidden();
+			setHidden(error);
 			// waitingIcon.classList.add('hidden');
 			// console.log('________', currLayer, arr)
 		});
@@ -113,10 +122,14 @@ let currDrawingObj = null;
 let currDrawingObjArea = null;
 const privaz = (ev, dObj) => {
 	currDrawingObj = dObj || ev.object;
-	currDrawingObjArea = currDrawingObj.getSummary();
-	
-	clearData();
-	drawingButton.checked = true;
+	if (currDrawingObj._map) {
+		currDrawingObjArea = currDrawingObj.getSummary();
+		clearData();
+		drawingButton.checked = true;
+		error = '';
+	} else {
+		currDrawingObj = currDrawingObjArea = null;
+	}
 };
 
 let map = null; Store.leafletMap.subscribe(value => {
@@ -131,6 +144,7 @@ const createDrawing = (ev) => {
 	let cont = map.getContainer(),
 		button = ev.target.parentNode;
 
+	error = '';
 	if (drawingChecked) {
 		//map.gmxDrawing.getFeatures();
 		cont.style.cursor = 'pointer';
@@ -152,9 +166,11 @@ const createDrawing = (ev) => {
 	}
 };
 
-const setHidden = (ev) => {
+const setHidden = (err) => {
 // console.log('setHidden', ev );
-	waitingIcon.classList.add('hidden');};
+	error = typeof(err) === 'string' ? err : '';
+	waitingIcon.classList.add('hidden');
+};
 
 let filteredLayerID = '';
 const clearData = () => {
@@ -167,11 +183,30 @@ const createExport = (ev) => {
 };
 
 const createFilterLayer = (ev) => {
+	if (drawingChecked && !currDrawingObjArea) {
+		error = 'Необходимо нарисовать контур';
+		let dc = nsGmx.leafletMap.gmxControlsManager.get('drawing'),
+			ac = nsGmx.leafletMap.gmxControlsManager.get(dc.activeIcon || 'Polygon');
+		ac.setActive(false);
+		dc.setActiveIcon('', false);
+		// let cont = map.getContainer(),
+			// button = ev.target.parentNode,
+			// drawingControl = map.gmxControlsManager.get('drawing'),
+			// pIcon = drawingControl.getIconById('Polygon');
+		// drawingControl.setActiveIcon(pIcon, false);
+		// currDrawingObj = currDrawingObjArea = null;
+		// cont.style.cursor = '';
+		// button.classList.remove('drawState');
+		// map.gmxDrawing.off('drawstop', privaz, this);
+		// map.gmxDrawing.create();
+		return;
+	}
 	let id = currLayer.id,
 		layer = gmxMap.layersByID[id],
 		props = layer.getGmxProperties(),
 		nodes = content.getElementsByTagName('input'),
 		pars = {SourceType: 'Sql', srs: 3857},
+		inn = '',
 		arr = [];
 
 	waitingIcon.classList.remove('hidden');
@@ -181,9 +216,10 @@ const createFilterLayer = (ev) => {
 			val = node.value;
 		if (val && node !== drawingButton) {
 			arr.push('"' + node.name + '" = \'' + val + '\'');
+			pars.Title = 'Объекты недвижимости собственника с ИНН "' + val + '" по слою "' + props.title + '"';
 		}
 	}
-	pars.Title = 'Фильтр ' + arr.join(', ') + ' по слою "' + props.title + '"';
+	// pars.Title = 'Фильтр ' + arr.join(', ') + ' по слою "' + props.title + '"';
 	pars.styles = props.styles;
 	pars.Description = props.description || '';
 	pars.Copyright = props.Copyright || '';
@@ -192,19 +228,23 @@ const createFilterLayer = (ev) => {
 		alen = arr.length;
 	if (currDrawingObj || alen) {
 		w = 'WHERE ';
-		if (alen) {
-			w += '(' + arr.join(') AND (') + ')';
-		}
 		if (currDrawingObj) {
-			w += alen ? ' AND' : '';
-			w += ' intersects([geomixergeojson], GeometryFromGeoJson(\'' + JSON.stringify(currDrawingObj.toGeoJSON()) + '\', 4326))'
+			w += '"S_FIN" = \'FS\'';
+			w += ' AND intersects([geomixergeojson], GeometryFromGeoJson(\'' + JSON.stringify(currDrawingObj.toGeoJSON()) + '\', 4326))'
+			pars.Title = 'Федеральные объекты недвижимости в пределах контура по слою "' + props.title + '"';
+		} else if (alen) {
+			w += '(' + arr.join(') AND (') + ')';
 		}
 	}
 	pars.Sql = 'select [geomixergeojson] as gmx_geometry, ' + currLayer.attr + ', "gmx_id" as "gmx_id" from [' + id + '] ' + w;
 
 	Requests.createFilterLayer(pars).then((res) => {
-		setHidden();
-		filteredLayerID = res.content.properties.LayerID;
+		if (res.error) {
+			setHidden(res.error);
+		} else {
+			setHidden('Слой создан');
+			filteredLayerID = res.content.properties.LayerID;
+		}
 	});
 	//	console.log('createFilterLayer', exportButton, content, arr.join(' , ') );
 };
@@ -225,6 +265,8 @@ const createFilterLayer = (ev) => {
 	</div>
 
 {#if currLayer}
+ {#if !drawingChecked}
+
 	{#each Object.keys(currLayer.filters) as field}
 	<div class="row">
 		<div class="title">{currLayer.filters[field].title}</div>
@@ -240,17 +282,18 @@ const createFilterLayer = (ev) => {
 		</div>
 	</div>
 	{/each}
+ {/if}
 
 	<div class="row">
 		<div class="checkbox">
-		   <input type="checkbox" name="checkboxG4" on:change="{createDrawing}" bind:this={drawingButton} id="checkboxG4" class="css-checkbox2" title="Нарисовать или выбрать объект по правой кнопке на вершине"/><label for="checkboxG4" class="css-label2 radGroup1">Поиск по пересечению с объектом</label>
+		   <input type="checkbox" name="checkboxG4" on:change="{createDrawing}" bind:this={drawingButton} id="checkboxG4" class="css-checkbox2" title="Нарисовать или выбрать объект по правой кнопке на вершине"/><label for="checkboxG4" class="css-label2 radGroup1">Поиск федеральных объектов недвижимости по пересечению с контуром (создайте контур на Геопортале)</label>
 			{#if currDrawingObj}
 			<span class="currDrawingObjArea">{currDrawingObjArea}</span>
 			{/if}
 		</div>
 	</div>
 {/if}
-	
+
 	<div class="bottom {currLayer ? '' : 'hidden'}">
 		<button class="button" on:click="{createFilterLayer}">Создать слой по фильтру</button>
 		<a href='load' download='features.geojson' target='download' onload="{setHidden}" class="exportHref {filteredLayerID ? '' : 'hidden'}">
@@ -258,5 +301,11 @@ const createFilterLayer = (ev) => {
 			<button class="button" on:click="{createExport}">Экспорт в Excel</button>
 		</a>
 	</div>
+
+{#if error}
+	<div class="row error">
+		<span class="txt">{error}</span>
+	</div>
+{/if}
 
 </div>

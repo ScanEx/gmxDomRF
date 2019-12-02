@@ -42,6 +42,9 @@ var gmxDomRF = (function (exports) {
     function space() {
         return text(' ');
     }
+    function empty() {
+        return text('');
+    }
     function listen(node, event, handler, options) {
         node.addEventListener(event, handler, options);
         return () => node.removeEventListener(event, handler, options);
@@ -790,7 +793,7 @@ var gmxDomRF = (function (exports) {
     var geoMag = new Geomag(cof).mag;
 
     const _self = self || window,
-    		serverBase = (_self.serverBase || 'maps.kosmosnimki.ru').replace(/http.*:\/\//, '').replace(/\//g, '');
+    		serverBase = (_self.serverBase || 'maps.kosmosnimki.ru').replace(/http.*:\/\//, '').replace(/\//g, '');
 
     let str = self.location.origin || '',
     	_protocol = str.substring(0, str.indexOf('/')),
@@ -1184,7 +1187,6 @@ var gmxDomRF = (function (exports) {
     			params: pars
     		})
     		.then((json) => {
-    			//console.log('createFilterLayer________', json);
     			if (json.res.Status === 'ok') {
     				chkTask(json.res.Result.TaskID)
     				.then(json => {
@@ -1201,7 +1203,10 @@ var gmxDomRF = (function (exports) {
     						});
     					}
     				})
-    				.catch(err => console.log(err));
+    				.catch(err => {
+    					console.log(err);
+    					resolve({error: 'Ошибка', Result: json.Result, pars: pars});
+    				});
     			}
     		})
     		.catch(err => console.log(err));
@@ -1292,7 +1297,7 @@ var gmxDomRF = (function (exports) {
     	return child_ctx;
     }
 
-    // (220:4) {#each Object.keys(filterLayers) as k}
+    // (260:4) {#each Object.keys(filterLayers) as k}
     function create_each_block_2(ctx) {
     	var option, t_value = ctx.filterLayers[ctx.k].title + "", t, option_value_value;
 
@@ -1329,34 +1334,25 @@ var gmxDomRF = (function (exports) {
     	};
     }
 
-    // (227:0) {#if currLayer}
-    function create_if_block(ctx) {
+    // (267:0) {#if currLayer}
+    function create_if_block_1(ctx) {
     	var t0, div1, div0, input, label, t2, dispose;
 
-    	let each_value = Object.keys(ctx.currLayer.filters);
+    	var if_block0 = (!ctx.drawingChecked) && create_if_block_3(ctx);
 
-    	let each_blocks = [];
-
-    	for (let i = 0; i < each_value.length; i += 1) {
-    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
-    	}
-
-    	var if_block = (ctx.currDrawingObj) && create_if_block_1(ctx);
+    	var if_block1 = (ctx.currDrawingObj) && create_if_block_2(ctx);
 
     	return {
     		c() {
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].c();
-    			}
-
+    			if (if_block0) if_block0.c();
     			t0 = space();
     			div1 = element("div");
     			div0 = element("div");
     			input = element("input");
     			label = element("label");
-    			label.textContent = "Поиск по пересечению с объектом";
+    			label.textContent = "Поиск федеральных объектов недвижимости по пересечению с контуром (создайте контур на Геопортале)";
     			t2 = space();
-    			if (if_block) if_block.c();
+    			if (if_block1) if_block1.c();
     			attr(input, "type", "checkbox");
     			attr(input, "name", "checkboxG4");
     			attr(input, "id", "checkboxG4");
@@ -1370,10 +1366,7 @@ var gmxDomRF = (function (exports) {
     		},
 
     		m(target, anchor) {
-    			for (let i = 0; i < each_blocks.length; i += 1) {
-    				each_blocks[i].m(target, anchor);
-    			}
-
+    			if (if_block0) if_block0.m(target, anchor);
     			insert(target, t0, anchor);
     			insert(target, div1, anchor);
     			append(div1, div0);
@@ -1381,7 +1374,79 @@ var gmxDomRF = (function (exports) {
     			ctx.input_binding(input);
     			append(div0, label);
     			append(div0, t2);
-    			if (if_block) if_block.m(div0, null);
+    			if (if_block1) if_block1.m(div0, null);
+    		},
+
+    		p(changed, ctx) {
+    			if (!ctx.drawingChecked) {
+    				if (if_block0) {
+    					if_block0.p(changed, ctx);
+    				} else {
+    					if_block0 = create_if_block_3(ctx);
+    					if_block0.c();
+    					if_block0.m(t0.parentNode, t0);
+    				}
+    			} else if (if_block0) {
+    				if_block0.d(1);
+    				if_block0 = null;
+    			}
+
+    			if (ctx.currDrawingObj) {
+    				if (if_block1) {
+    					if_block1.p(changed, ctx);
+    				} else {
+    					if_block1 = create_if_block_2(ctx);
+    					if_block1.c();
+    					if_block1.m(div0, null);
+    				}
+    			} else if (if_block1) {
+    				if_block1.d(1);
+    				if_block1 = null;
+    			}
+    		},
+
+    		d(detaching) {
+    			if (if_block0) if_block0.d(detaching);
+
+    			if (detaching) {
+    				detach(t0);
+    				detach(div1);
+    			}
+
+    			ctx.input_binding(null);
+    			if (if_block1) if_block1.d();
+    			dispose();
+    		}
+    	};
+    }
+
+    // (268:1) {#if !drawingChecked}
+    function create_if_block_3(ctx) {
+    	var each_1_anchor;
+
+    	let each_value = Object.keys(ctx.currLayer.filters);
+
+    	let each_blocks = [];
+
+    	for (let i = 0; i < each_value.length; i += 1) {
+    		each_blocks[i] = create_each_block(get_each_context(ctx, each_value, i));
+    	}
+
+    	return {
+    		c() {
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].c();
+    			}
+
+    			each_1_anchor = empty();
+    		},
+
+    		m(target, anchor) {
+    			for (let i = 0; i < each_blocks.length; i += 1) {
+    				each_blocks[i].m(target, anchor);
+    			}
+
+    			insert(target, each_1_anchor, anchor);
     		},
 
     		p(changed, ctx) {
@@ -1397,7 +1462,7 @@ var gmxDomRF = (function (exports) {
     					} else {
     						each_blocks[i] = create_each_block(child_ctx);
     						each_blocks[i].c();
-    						each_blocks[i].m(t0.parentNode, t0);
+    						each_blocks[i].m(each_1_anchor.parentNode, each_1_anchor);
     					}
     				}
 
@@ -1406,38 +1471,20 @@ var gmxDomRF = (function (exports) {
     				}
     				each_blocks.length = each_value.length;
     			}
-
-    			if (ctx.currDrawingObj) {
-    				if (if_block) {
-    					if_block.p(changed, ctx);
-    				} else {
-    					if_block = create_if_block_1(ctx);
-    					if_block.c();
-    					if_block.m(div0, null);
-    				}
-    			} else if (if_block) {
-    				if_block.d(1);
-    				if_block = null;
-    			}
     		},
 
     		d(detaching) {
     			destroy_each(each_blocks, detaching);
 
     			if (detaching) {
-    				detach(t0);
-    				detach(div1);
+    				detach(each_1_anchor);
     			}
-
-    			ctx.input_binding(null);
-    			if (if_block) if_block.d();
-    			dispose();
     		}
     	};
     }
 
-    // (233:2) {#if currLayer.filters[field].datalist}
-    function create_if_block_2(ctx) {
+    // (275:2) {#if currLayer.filters[field].datalist}
+    function create_if_block_4(ctx) {
     	var datalist, datalist_id_value;
 
     	let each_value_1 = ctx.currLayer.filters[ctx.field].datalist;
@@ -1504,7 +1551,7 @@ var gmxDomRF = (function (exports) {
     	};
     }
 
-    // (235:4) {#each currLayer.filters[field].datalist as pt}
+    // (277:4) {#each currLayer.filters[field].datalist as pt}
     function create_each_block_1(ctx) {
     	var option, option_value_value;
 
@@ -1535,11 +1582,11 @@ var gmxDomRF = (function (exports) {
     	};
     }
 
-    // (228:1) {#each Object.keys(currLayer.filters) as field}
+    // (270:1) {#each Object.keys(currLayer.filters) as field}
     function create_each_block(ctx) {
-    	var div2, div0, t0_value = ctx.currLayer.filters[ctx.field].title + "", t0, t1, div1, input, input_name_value, input_list_value, t2, dispose;
+    	var div2, div0, t0_value = ctx.currLayer.filters[ctx.field].title + "", t0, t1, div1, input, input_name_value, input_list_value, t2, t3, dispose;
 
-    	var if_block = (ctx.currLayer.filters[ctx.field].datalist) && create_if_block_2(ctx);
+    	var if_block = (ctx.currLayer.filters[ctx.field].datalist) && create_if_block_4(ctx);
 
     	return {
     		c() {
@@ -1551,6 +1598,7 @@ var gmxDomRF = (function (exports) {
     			input = element("input");
     			t2 = space();
     			if (if_block) if_block.c();
+    			t3 = space();
     			attr(div0, "class", "title");
     			attr(input, "type", "text");
     			attr(input, "name", input_name_value = ctx.field);
@@ -1569,6 +1617,7 @@ var gmxDomRF = (function (exports) {
     			append(div1, input);
     			append(div1, t2);
     			if (if_block) if_block.m(div1, null);
+    			append(div2, t3);
     		},
 
     		p(changed, ctx) {
@@ -1588,7 +1637,7 @@ var gmxDomRF = (function (exports) {
     				if (if_block) {
     					if_block.p(changed, ctx);
     				} else {
-    					if_block = create_if_block_2(ctx);
+    					if_block = create_if_block_4(ctx);
     					if_block.c();
     					if_block.m(div1, null);
     				}
@@ -1609,8 +1658,8 @@ var gmxDomRF = (function (exports) {
     	};
     }
 
-    // (247:3) {#if currDrawingObj}
-    function create_if_block_1(ctx) {
+    // (290:3) {#if currDrawingObj}
+    function create_if_block_2(ctx) {
     	var span, t;
 
     	return {
@@ -1639,8 +1688,41 @@ var gmxDomRF = (function (exports) {
     	};
     }
 
+    // (305:0) {#if error}
+    function create_if_block(ctx) {
+    	var div, span, t;
+
+    	return {
+    		c() {
+    			div = element("div");
+    			span = element("span");
+    			t = text(ctx.error);
+    			attr(span, "class", "txt");
+    			attr(div, "class", "row error");
+    		},
+
+    		m(target, anchor) {
+    			insert(target, div, anchor);
+    			append(div, span);
+    			append(span, t);
+    		},
+
+    		p(changed, ctx) {
+    			if (changed.error) {
+    				set_data(t, ctx.error);
+    			}
+    		},
+
+    		d(detaching) {
+    			if (detaching) {
+    				detach(div);
+    			}
+    		}
+    	};
+    }
+
     function create_fragment(ctx) {
-    	var div4, div2, div0, t1, div1, select, option, t2, t3, div3, button0, t5, a, iframe_1, t6, button1, a_class_value, div3_class_value, dispose;
+    	var div4, div2, div0, t1, div1, select, option, t2, t3, div3, button0, t5, a, iframe_1, t6, button1, a_class_value, div3_class_value, t8, dispose;
 
     	let each_value_2 = Object.keys(ctx.filterLayers);
 
@@ -1650,7 +1732,9 @@ var gmxDomRF = (function (exports) {
     		each_blocks[i] = create_each_block_2(get_each_context_2(ctx, each_value_2, i));
     	}
 
-    	var if_block = (ctx.currLayer) && create_if_block(ctx);
+    	var if_block0 = (ctx.currLayer) && create_if_block_1(ctx);
+
+    	var if_block1 = (ctx.error) && create_if_block(ctx);
 
     	return {
     		c() {
@@ -1668,7 +1752,7 @@ var gmxDomRF = (function (exports) {
     			}
 
     			t2 = space();
-    			if (if_block) if_block.c();
+    			if (if_block0) if_block0.c();
     			t3 = space();
     			div3 = element("div");
     			button0 = element("button");
@@ -1679,6 +1763,8 @@ var gmxDomRF = (function (exports) {
     			t6 = space();
     			button1 = element("button");
     			button1.textContent = "Экспорт в Excel";
+    			t8 = space();
+    			if (if_block1) if_block1.c();
     			attr(div0, "class", "title");
     			option.__value = "";
     			option.value = option.__value;
@@ -1721,7 +1807,7 @@ var gmxDomRF = (function (exports) {
 
     			ctx.div2_binding(div2);
     			append(div4, t2);
-    			if (if_block) if_block.m(div4, null);
+    			if (if_block0) if_block0.m(div4, null);
     			append(div4, t3);
     			append(div4, div3);
     			append(div3, button0);
@@ -1731,6 +1817,8 @@ var gmxDomRF = (function (exports) {
     			ctx.iframe_1_binding(iframe_1);
     			append(a, t6);
     			append(a, button1);
+    			append(div4, t8);
+    			if (if_block1) if_block1.m(div4, null);
     			ctx.div4_binding(div4);
     		},
 
@@ -1758,16 +1846,16 @@ var gmxDomRF = (function (exports) {
     			}
 
     			if (ctx.currLayer) {
-    				if (if_block) {
-    					if_block.p(changed, ctx);
+    				if (if_block0) {
+    					if_block0.p(changed, ctx);
     				} else {
-    					if_block = create_if_block(ctx);
-    					if_block.c();
-    					if_block.m(div4, t3);
+    					if_block0 = create_if_block_1(ctx);
+    					if_block0.c();
+    					if_block0.m(div4, t3);
     				}
-    			} else if (if_block) {
-    				if_block.d(1);
-    				if_block = null;
+    			} else if (if_block0) {
+    				if_block0.d(1);
+    				if_block0 = null;
     			}
 
     			if ((changed.filteredLayerID) && a_class_value !== (a_class_value = "exportHref " + (ctx.filteredLayerID ? '' : 'hidden'))) {
@@ -1776,6 +1864,19 @@ var gmxDomRF = (function (exports) {
 
     			if ((changed.currLayer) && div3_class_value !== (div3_class_value = "bottom " + (ctx.currLayer ? '' : 'hidden'))) {
     				attr(div3, "class", div3_class_value);
+    			}
+
+    			if (ctx.error) {
+    				if (if_block1) {
+    					if_block1.p(changed, ctx);
+    				} else {
+    					if_block1 = create_if_block(ctx);
+    					if_block1.c();
+    					if_block1.m(div4, null);
+    				}
+    			} else if (if_block1) {
+    				if_block1.d(1);
+    				if_block1 = null;
     			}
     		},
 
@@ -1790,8 +1891,9 @@ var gmxDomRF = (function (exports) {
     			destroy_each(each_blocks, detaching);
 
     			ctx.div2_binding(null);
-    			if (if_block) if_block.d();
+    			if (if_block0) if_block0.d();
     			ctx.iframe_1_binding(null);
+    			if (if_block1) if_block1.d();
     			ctx.div4_binding(null);
     			run_all(dispose);
     		}
@@ -1800,6 +1902,7 @@ var gmxDomRF = (function (exports) {
 
     function instance($$self, $$props, $$invalidate) {
 
+    let error = null;
     let waitingIcon = null;
     let content = null;
 
@@ -1817,13 +1920,16 @@ var gmxDomRF = (function (exports) {
     				// let f = {field: k, title: meta[k].Value};
     				// out.filters.push(f);
     					promiseArr.push(Requests.getColumnStat({id: id, column: k}).then((json) => {
+    						if (json.res.ErrorInfo) {
+    							console.warn(json);
+    							return {};
+    						}
     						let res = json.res.Result;
     						if (res && res.unique) {
     							//f.datalist = res.unique;
     							return {field: json.queue.params.column, datalist: res.unique};
     						}
     						return null;
-    		// console.log('getCol111umnStat', out);
     					}));
     			} else {
     				console.warn('В слое:', id, ' поле:', k, ' не существует!');
@@ -1887,10 +1993,15 @@ var gmxDomRF = (function (exports) {
     	if (id) {
     		getColumnStat(id).then((arr) => {
     			$$invalidate('currLayer', currLayer = filterLayers[id]);
+    			$$invalidate('error', error = '');
     			arr.forEach((it) => {
-    				$$invalidate('currLayer', currLayer.filters[it.field].datalist = it.datalist, currLayer);
+    				if (it.field) {
+    					$$invalidate('currLayer', currLayer.filters[it.field].datalist = it.datalist, currLayer);
+    				} else {
+    					$$invalidate('error', error = 'Ошибка');
+    				}
     			});
-    			setHidden();
+    			setHidden(error);
     			// waitingIcon.classList.add('hidden');
     			// console.log('________', currLayer, arr)
     		});
@@ -1903,10 +2014,14 @@ var gmxDomRF = (function (exports) {
     let currDrawingObjArea = null;
     const privaz = (ev, dObj) => {
     	$$invalidate('currDrawingObj', currDrawingObj = dObj || ev.object);
-    	$$invalidate('currDrawingObjArea', currDrawingObjArea = currDrawingObj.getSummary());
-    	
-    	clearData();
-    	$$invalidate('drawingButton', drawingButton.checked = true, drawingButton);
+    	if (currDrawingObj._map) {
+    		$$invalidate('currDrawingObjArea', currDrawingObjArea = currDrawingObj.getSummary());
+    		clearData();
+    		$$invalidate('drawingButton', drawingButton.checked = true, drawingButton);
+    		$$invalidate('error', error = '');
+    	} else {
+    		$$invalidate('currDrawingObj', currDrawingObj = $$invalidate('currDrawingObjArea', currDrawingObjArea = null));
+    	}
     };
 
     let map = null; leafletMap.subscribe(value => {
@@ -1916,11 +2031,12 @@ var gmxDomRF = (function (exports) {
 
     let drawingChecked = false;
     const createDrawing = (ev) => {
-    	drawingChecked = ev.target.checked;
+    	$$invalidate('drawingChecked', drawingChecked = ev.target.checked);
     	L.DomEvent.stopPropagation(ev);
     	let cont = map.getContainer(),
     		button = ev.target.parentNode;
 
+    	$$invalidate('error', error = '');
     	if (drawingChecked) {
     		//map.gmxDrawing.getFeatures();
     		cont.style.cursor = 'pointer';
@@ -1942,9 +2058,11 @@ var gmxDomRF = (function (exports) {
     	}
     };
 
-    const setHidden = (ev) => {
+    const setHidden = (err) => {
     // console.log('setHidden', ev );
-    	waitingIcon.classList.add('hidden');};
+    	$$invalidate('error', error = typeof(err) === 'string' ? err : '');
+    	waitingIcon.classList.add('hidden');
+    };
 
     let filteredLayerID = '';
     const clearData = () => {
@@ -1957,6 +2075,24 @@ var gmxDomRF = (function (exports) {
     };
 
     const createFilterLayer = (ev) => {
+    	if (drawingChecked && !currDrawingObjArea) {
+    		$$invalidate('error', error = 'Необходимо нарисовать контур');
+    		let dc = nsGmx.leafletMap.gmxControlsManager.get('drawing'),
+    			ac = nsGmx.leafletMap.gmxControlsManager.get(dc.activeIcon || 'Polygon');
+    		ac.setActive(false);
+    		dc.setActiveIcon('', false);
+    		// let cont = map.getContainer(),
+    			// button = ev.target.parentNode,
+    			// drawingControl = map.gmxControlsManager.get('drawing'),
+    			// pIcon = drawingControl.getIconById('Polygon');
+    		// drawingControl.setActiveIcon(pIcon, false);
+    		// currDrawingObj = currDrawingObjArea = null;
+    		// cont.style.cursor = '';
+    		// button.classList.remove('drawState');
+    		// map.gmxDrawing.off('drawstop', privaz, this);
+    		// map.gmxDrawing.create();
+    		return;
+    	}
     	let id = currLayer.id,
     		layer = gmxMap$1.layersByID[id],
     		props = layer.getGmxProperties(),
@@ -1971,9 +2107,10 @@ var gmxDomRF = (function (exports) {
     			val = node.value;
     		if (val && node !== drawingButton) {
     			arr.push('"' + node.name + '" = \'' + val + '\'');
+    			pars.Title = 'Объекты недвижимости собственника с ИНН "' + val + '" по слою "' + props.title + '"';
     		}
     	}
-    	pars.Title = 'Фильтр ' + arr.join(', ') + ' по слою "' + props.title + '"';
+    	// pars.Title = 'Фильтр ' + arr.join(', ') + ' по слою "' + props.title + '"';
     	pars.styles = props.styles;
     	pars.Description = props.description || '';
     	pars.Copyright = props.Copyright || '';
@@ -1982,19 +2119,23 @@ var gmxDomRF = (function (exports) {
     		alen = arr.length;
     	if (currDrawingObj || alen) {
     		w = 'WHERE ';
-    		if (alen) {
-    			w += '(' + arr.join(') AND (') + ')';
-    		}
     		if (currDrawingObj) {
-    			w += alen ? ' AND' : '';
-    			w += ' intersects([geomixergeojson], GeometryFromGeoJson(\'' + JSON.stringify(currDrawingObj.toGeoJSON()) + '\', 4326))';
+    			w += '"S_FIN" = \'FS\'';
+    			w += ' AND intersects([geomixergeojson], GeometryFromGeoJson(\'' + JSON.stringify(currDrawingObj.toGeoJSON()) + '\', 4326))';
+    			pars.Title = 'Федеральные объекты недвижимости в пределах контура по слою "' + props.title + '"';
+    		} else if (alen) {
+    			w += '(' + arr.join(') AND (') + ')';
     		}
     	}
     	pars.Sql = 'select [geomixergeojson] as gmx_geometry, ' + currLayer.attr + ', "gmx_id" as "gmx_id" from [' + id + '] ' + w;
 
     	Requests.createFilterLayer(pars).then((res) => {
-    		setHidden();
-    		$$invalidate('filteredLayerID', filteredLayerID = res.content.properties.LayerID);
+    		if (res.error) {
+    			setHidden(res.error);
+    		} else {
+    			setHidden('Слой создан');
+    			$$invalidate('filteredLayerID', filteredLayerID = res.content.properties.LayerID);
+    		}
     	});
     	//	console.log('createFilterLayer', exportButton, content, arr.join(' , ') );
     };
@@ -2024,6 +2165,7 @@ var gmxDomRF = (function (exports) {
     	}
 
     	return {
+    		error,
     		waitingIcon,
     		content,
     		filterLayers,
@@ -2032,6 +2174,7 @@ var gmxDomRF = (function (exports) {
     		drawingButton,
     		currDrawingObj,
     		currDrawingObjArea,
+    		drawingChecked,
     		createDrawing,
     		setHidden,
     		filteredLayerID,
