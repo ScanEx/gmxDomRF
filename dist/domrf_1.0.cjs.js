@@ -67,6 +67,17 @@ let current_component;
 function set_current_component(component) {
     current_component = component;
 }
+function get_current_component() {
+    if (!current_component)
+        throw new Error(`Function called outside component initialization`);
+    return current_component;
+}
+function setContext(key, context) {
+    get_current_component().$$.context.set(key, context);
+}
+function getContext(key) {
+    return get_current_component().$$.context.get(key);
+}
 
 const dirty_components = [];
 const binding_callbacks = [];
@@ -283,67 +294,6 @@ class SvelteComponent {
         // overridden by instance, if it has props
     }
 }
-
-const subscriber_queue = [];
-/**
- * Create a `Writable` store that allows both updating and reading by subscription.
- * @param {*=}value initial value
- * @param {StartStopNotifier=}start start and stop notifications for subscriptions
- */
-function writable(value, start = noop) {
-    let stop;
-    const subscribers = [];
-    function set(new_value) {
-        if (safe_not_equal(value, new_value)) {
-            value = new_value;
-            if (stop) { // store is ready
-                const run_queue = !subscriber_queue.length;
-                for (let i = 0; i < subscribers.length; i += 1) {
-                    const s = subscribers[i];
-                    s[1]();
-                    subscriber_queue.push(s, value);
-                }
-                if (run_queue) {
-                    for (let i = 0; i < subscriber_queue.length; i += 2) {
-                        subscriber_queue[i][0](subscriber_queue[i + 1]);
-                    }
-                    subscriber_queue.length = 0;
-                }
-            }
-        }
-    }
-    function update(fn) {
-        set(fn(value));
-    }
-    function subscribe(run, invalidate = noop) {
-        const subscriber = [run, invalidate];
-        subscribers.push(subscriber);
-        if (subscribers.length === 1) {
-            stop = start(set) || noop;
-        }
-        run(value);
-        return () => {
-            const index = subscribers.indexOf(subscriber);
-            if (index !== -1) {
-                subscribers.splice(index, 1);
-            }
-            if (subscribers.length === 0) {
-                stop();
-                stop = null;
-            }
-        };
-    }
-    return { set, update, subscribe };
-}
-
-// leafletMap: writable(0),
-// baseContVisible: writable(0),
-// mapID: writable(0),
-// mapTree: writable(0)
-// };
-
-var leafletMap = writable(0);
-var gmxMap = writable(0);
 
 function _typeof(obj) {
   if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") {
@@ -1349,26 +1299,26 @@ var Requests = {
 
 function get_each_context_1(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[29] = list[i];
+	child_ctx[30] = list[i];
 	return child_ctx;
 }
 
 function get_each_context(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[26] = list[i];
+	child_ctx[27] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_2(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[32] = list[i];
+	child_ctx[33] = list[i];
 	return child_ctx;
 }
 
-// (258:4) {#each Object.keys(filterLayers) as k}
+// (256:4) {#each Object.keys(filterLayers) as k}
 function create_each_block_2(ctx) {
 	let option;
-	let t_value = /*filterLayers*/ ctx[3][/*k*/ ctx[32]].title + "";
+	let t_value = /*filterLayers*/ ctx[3][/*k*/ ctx[33]].title + "";
 	let t;
 	let option_value_value;
 
@@ -1376,7 +1326,7 @@ function create_each_block_2(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*filterLayers*/ ctx[3][/*k*/ ctx[32]].id;
+			option.__value = option_value_value = /*filterLayers*/ ctx[3][/*k*/ ctx[33]].id;
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -1384,9 +1334,9 @@ function create_each_block_2(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*filterLayers*/ 8 && t_value !== (t_value = /*filterLayers*/ ctx[3][/*k*/ ctx[32]].title + "")) set_data(t, t_value);
+			if (dirty[0] & /*filterLayers*/ 8 && t_value !== (t_value = /*filterLayers*/ ctx[3][/*k*/ ctx[33]].title + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*filterLayers*/ 8 && option_value_value !== (option_value_value = /*filterLayers*/ ctx[3][/*k*/ ctx[32]].id)) {
+			if (dirty[0] & /*filterLayers*/ 8 && option_value_value !== (option_value_value = /*filterLayers*/ ctx[3][/*k*/ ctx[33]].id)) {
 				option.__value = option_value_value;
 			}
 
@@ -1398,7 +1348,7 @@ function create_each_block_2(ctx) {
 	};
 }
 
-// (265:1) {#if currLayer}
+// (263:1) {#if currLayer}
 function create_if_block_1(ctx) {
 	let t0;
 	let div1;
@@ -1438,7 +1388,7 @@ function create_if_block_1(ctx) {
 			insert(target, div1, anchor);
 			append(div1, div0);
 			append(div0, input);
-			/*input_binding*/ ctx[23](input);
+			/*input_binding*/ ctx[24](input);
 			append(div0, label);
 			append(div0, t2);
 			if (if_block1) if_block1.m(div0, null);
@@ -1474,14 +1424,14 @@ function create_if_block_1(ctx) {
 			if (if_block0) if_block0.d(detaching);
 			if (detaching) detach(t0);
 			if (detaching) detach(div1);
-			/*input_binding*/ ctx[23](null);
+			/*input_binding*/ ctx[24](null);
 			if (if_block1) if_block1.d();
 			dispose();
 		}
 	};
 }
 
-// (266:2) {#if !drawingChecked}
+// (264:2) {#if !drawingChecked}
 function create_if_block_3(ctx) {
 	let each_1_anchor;
 	let each_value = Object.keys(/*currLayer*/ ctx[4].filters);
@@ -1537,11 +1487,11 @@ function create_if_block_3(ctx) {
 	};
 }
 
-// (272:4) {#if currLayer.filters[field].datalist}
+// (270:4) {#if currLayer.filters[field].datalist}
 function create_if_block_4(ctx) {
 	let datalist;
 	let datalist_id_value;
-	let each_value_1 = /*currLayer*/ ctx[4].filters[/*field*/ ctx[26]].datalist;
+	let each_value_1 = /*currLayer*/ ctx[4].filters[/*field*/ ctx[27]].datalist;
 	let each_blocks = [];
 
 	for (let i = 0; i < each_value_1.length; i += 1) {
@@ -1556,7 +1506,7 @@ function create_if_block_4(ctx) {
 				each_blocks[i].c();
 			}
 
-			attr(datalist, "id", datalist_id_value = /*field*/ ctx[26]);
+			attr(datalist, "id", datalist_id_value = /*field*/ ctx[27]);
 		},
 		m(target, anchor) {
 			insert(target, datalist, anchor);
@@ -1567,7 +1517,7 @@ function create_if_block_4(ctx) {
 		},
 		p(ctx, dirty) {
 			if (dirty[0] & /*currLayer*/ 16) {
-				each_value_1 = /*currLayer*/ ctx[4].filters[/*field*/ ctx[26]].datalist;
+				each_value_1 = /*currLayer*/ ctx[4].filters[/*field*/ ctx[27]].datalist;
 				let i;
 
 				for (i = 0; i < each_value_1.length; i += 1) {
@@ -1589,7 +1539,7 @@ function create_if_block_4(ctx) {
 				each_blocks.length = each_value_1.length;
 			}
 
-			if (dirty[0] & /*currLayer*/ 16 && datalist_id_value !== (datalist_id_value = /*field*/ ctx[26])) {
+			if (dirty[0] & /*currLayer*/ 16 && datalist_id_value !== (datalist_id_value = /*field*/ ctx[27])) {
 				attr(datalist, "id", datalist_id_value);
 			}
 		},
@@ -1600,7 +1550,7 @@ function create_if_block_4(ctx) {
 	};
 }
 
-// (274:6) {#each currLayer.filters[field].datalist as pt}
+// (272:6) {#each currLayer.filters[field].datalist as pt}
 function create_each_block_1(ctx) {
 	let option;
 	let option_value_value;
@@ -1608,14 +1558,14 @@ function create_each_block_1(ctx) {
 	return {
 		c() {
 			option = element("option");
-			option.__value = option_value_value = /*pt*/ ctx[29].value;
+			option.__value = option_value_value = /*pt*/ ctx[30].value;
 			option.value = option.__value;
 		},
 		m(target, anchor) {
 			insert(target, option, anchor);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*currLayer*/ 16 && option_value_value !== (option_value_value = /*pt*/ ctx[29].value)) {
+			if (dirty[0] & /*currLayer*/ 16 && option_value_value !== (option_value_value = /*pt*/ ctx[30].value)) {
 				option.__value = option_value_value;
 			}
 
@@ -1627,11 +1577,11 @@ function create_each_block_1(ctx) {
 	};
 }
 
-// (267:3) {#each Object.keys(currLayer.filters) as field}
+// (265:3) {#each Object.keys(currLayer.filters) as field}
 function create_each_block(ctx) {
 	let div2;
 	let div0;
-	let t0_value = /*currLayer*/ ctx[4].filters[/*field*/ ctx[26]].title + "";
+	let t0_value = /*currLayer*/ ctx[4].filters[/*field*/ ctx[27]].title + "";
 	let t0;
 	let t1;
 	let div1;
@@ -1641,7 +1591,7 @@ function create_each_block(ctx) {
 	let t2;
 	let t3;
 	let dispose;
-	let if_block = /*currLayer*/ ctx[4].filters[/*field*/ ctx[26]].datalist && create_if_block_4(ctx);
+	let if_block = /*currLayer*/ ctx[4].filters[/*field*/ ctx[27]].datalist && create_if_block_4(ctx);
 
 	return {
 		c() {
@@ -1656,8 +1606,8 @@ function create_each_block(ctx) {
 			t3 = space();
 			attr(div0, "class", "title");
 			attr(input, "type", "text");
-			attr(input, "name", input_name_value = /*field*/ ctx[26]);
-			attr(input, "list", input_list_value = /*field*/ ctx[26]);
+			attr(input, "name", input_name_value = /*field*/ ctx[27]);
+			attr(input, "list", input_list_value = /*field*/ ctx[27]);
 			attr(div1, "class", "input");
 			attr(div2, "class", "row");
 			dispose = listen(input, "change", /*clearData*/ ctx[14]);
@@ -1674,17 +1624,17 @@ function create_each_block(ctx) {
 			append(div2, t3);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*currLayer*/ 16 && t0_value !== (t0_value = /*currLayer*/ ctx[4].filters[/*field*/ ctx[26]].title + "")) set_data(t0, t0_value);
+			if (dirty[0] & /*currLayer*/ 16 && t0_value !== (t0_value = /*currLayer*/ ctx[4].filters[/*field*/ ctx[27]].title + "")) set_data(t0, t0_value);
 
-			if (dirty[0] & /*currLayer*/ 16 && input_name_value !== (input_name_value = /*field*/ ctx[26])) {
+			if (dirty[0] & /*currLayer*/ 16 && input_name_value !== (input_name_value = /*field*/ ctx[27])) {
 				attr(input, "name", input_name_value);
 			}
 
-			if (dirty[0] & /*currLayer*/ 16 && input_list_value !== (input_list_value = /*field*/ ctx[26])) {
+			if (dirty[0] & /*currLayer*/ 16 && input_list_value !== (input_list_value = /*field*/ ctx[27])) {
 				attr(input, "list", input_list_value);
 			}
 
-			if (/*currLayer*/ ctx[4].filters[/*field*/ ctx[26]].datalist) {
+			if (/*currLayer*/ ctx[4].filters[/*field*/ ctx[27]].datalist) {
 				if (if_block) {
 					if_block.p(ctx, dirty);
 				} else {
@@ -1705,7 +1655,7 @@ function create_each_block(ctx) {
 	};
 }
 
-// (286:4) {#if currDrawingObj}
+// (284:4) {#if currDrawingObj}
 function create_if_block_2(ctx) {
 	let span;
 	let t;
@@ -1729,7 +1679,7 @@ function create_if_block_2(ctx) {
 	};
 }
 
-// (301:0) {#if error}
+// (299:0) {#if error}
 function create_if_block(ctx) {
 	let div;
 	let span;
@@ -1856,7 +1806,7 @@ function create_fragment(ctx) {
 				each_blocks[i].m(select, null);
 			}
 
-			/*div2_binding*/ ctx[22](div2);
+			/*div2_binding*/ ctx[23](div2);
 			append(div4, t2);
 			if (if_block0) if_block0.m(div4, null);
 			append(div4, t3);
@@ -1865,12 +1815,12 @@ function create_fragment(ctx) {
 			append(div3, t5);
 			append(div3, a);
 			append(a, iframe_1);
-			/*iframe_1_binding*/ ctx[24](iframe_1);
+			/*iframe_1_binding*/ ctx[25](iframe_1);
 			append(a, t6);
 			append(a, button1);
 			append(div4, t8);
 			if (if_block1) if_block1.m(div4, null);
-			/*div4_binding*/ ctx[25](div4);
+			/*div4_binding*/ ctx[26](div4);
 		},
 		p(ctx, dirty) {
 			if (dirty[0] & /*filterLayers*/ 8) {
@@ -1935,17 +1885,19 @@ function create_fragment(ctx) {
 		d(detaching) {
 			if (detaching) detach(div4);
 			destroy_each(each_blocks, detaching);
-			/*div2_binding*/ ctx[22](null);
+			/*div2_binding*/ ctx[23](null);
 			if (if_block0) if_block0.d();
-			/*iframe_1_binding*/ ctx[24](null);
+			/*iframe_1_binding*/ ctx[25](null);
 			if (if_block1) if_block1.d();
-			/*div4_binding*/ ctx[25](null);
+			/*div4_binding*/ ctx[26](null);
 			run_all(dispose);
 		}
 	};
 }
 
 function instance($$self, $$props, $$invalidate) {
+	const leafletMap = getContext("leafletMap");
+	const gmxMap = getContext("gmxMap");
 	let changedParams = { test: 23 };
 	let error = null;
 	let waitingIcon = null;
@@ -1953,7 +1905,7 @@ function instance($$self, $$props, $$invalidate) {
 	let filterLayers = {};
 
 	const getColumnStat = id => {
-		let layer = gmxMap$1.layersByID[id],
+		let layer = gmxMap.layersByID[id],
 			_gmx = layer._gmx,
 			props = layer.getGmxProperties(),
 			meta = props.MetaProperties,
@@ -1988,50 +1940,44 @@ function instance($$self, $$props, $$invalidate) {
 		return Promise.all(promiseArr);
 	};
 
-	let gmxMap$1 = null;
+	gmxMap.layers.forEach(it => {
+		let props = it.getGmxProperties(),
+			id = props.name,
+			meta = props.MetaProperties,
+			_gmx = gmxMap.layersByID[id]._gmx,
+			out = {
+				Title: props.title,
+				Description: props.description,
+				Copyright: props.Copyright,
+				IsRasterCatalog: false,
+				TemporalLayer: false,
+				filters: {}
+			};
 
-	gmxMap.subscribe(value => {
-		gmxMap$1 = value;
-
-		gmxMap$1.layers.forEach(it => {
-			let props = it.getGmxProperties(),
-				id = props.name,
-				meta = props.MetaProperties,
-				_gmx = gmxMap$1.layersByID[id]._gmx,
-				out = {
-					Title: props.title,
-					Description: props.description,
-					Copyright: props.Copyright,
-					IsRasterCatalog: false,
-					TemporalLayer: false,
-					filters: {}
-				};
-
-			for (var k in meta) {
-				if (k === "filter" && meta.filter.Value === "true") {
-					out.id = id;
-					out.title = props.title;
-					out.attr = props.attributes.map(n => "\"" + n + "\" as \"" + n + "\"").join(", ");
+		for (var k in meta) {
+			if (k === "filter" && meta.filter.Value === "true") {
+				out.id = id;
+				out.title = props.title;
+				out.attr = props.attributes.map(n => "\"" + n + "\" as \"" + n + "\"").join(", ");
+			} else {
+				if (k in _gmx.tileAttributeIndexes) {
+					out.filters[k] = { title: meta[k].Value };
 				} else {
-					if (k in _gmx.tileAttributeIndexes) {
-						out.filters[k] = { title: meta[k].Value };
-					} else {
-						console.warn("В слое:", id, " поле:", k, " не существует!");
-					}
+					console.warn("В слое:", id, " поле:", k, " не существует!");
 				}
 			}
+		}
 
-			if (out.id) {
-				$$invalidate(3, filterLayers[id] = out, filterLayers);
-			}
-		});
+		if (out.id) {
+			$$invalidate(3, filterLayers[id] = out, filterLayers);
+		}
 	});
 
 	let currLayer = null;
 
 	const changeLayer = ev => {
 		let id = ev ? ev.target.selectedOptions[0].value : null,
-			_gmx = gmxMap$1.layersByID[id];
+			_gmx = gmxMap.layersByID[id];
 
 		$$invalidate(4, currLayer = null);
 		waitingIcon.classList.remove("hidden");
@@ -2071,20 +2017,16 @@ function instance($$self, $$props, $$invalidate) {
 		}
 	};
 
-	let map = null;
+	let map = leafletMap;
 
-	leafletMap.subscribe(value => {
-		map = value;
-
-		map.gmxDrawing.contextmenu.insertItem(
-			{
-				callback: privaz,
-				text: "Привязать к фильтру"
-			},
-			0,
-			"points"
-		);
-	});
+	map.gmxDrawing.contextmenu.insertItem(
+		{
+			callback: privaz,
+			text: "Привязать к фильтру"
+		},
+		0,
+		"points"
+	);
 
 	let drawingChecked = false;
 
@@ -2133,8 +2075,8 @@ function instance($$self, $$props, $$invalidate) {
 		if (drawingChecked && !currDrawingObjArea) {
 			$$invalidate(0, error = "Необходимо нарисовать контур");
 
-			let dc = nsGmx.leafletMap.gmxControlsManager.get("drawing"),
-				ac = nsGmx.leafletMap.gmxControlsManager.get(dc.activeIcon || "Polygon");
+			let dc = leafletMap.gmxControlsManager.get("drawing"),
+				ac = leafletMap.gmxControlsManager.get(dc.activeIcon || "Polygon");
 
 			ac.setActive(false);
 			dc.setActiveIcon("", false);
@@ -2142,7 +2084,7 @@ function instance($$self, $$props, $$invalidate) {
 		}
 
 		let id = currLayer.id,
-			layer = gmxMap$1.layersByID[id],
+			layer = gmxMap.layersByID[id],
 			props = layer.getGmxProperties(),
 			nodes = content.getElementsByTagName("input"),
 			pars = { SourceType: "Sql", srs: 3857 },
@@ -2230,11 +2172,12 @@ function instance($$self, $$props, $$invalidate) {
 		clearData,
 		createExport,
 		createFilterLayer,
-		gmxMap$1,
-		map,
+		leafletMap,
+		gmxMap,
 		changedParams,
 		getColumnStat,
 		privaz,
+		map,
 		div2_binding,
 		input_binding,
 		iframe_1_binding,
@@ -2384,10 +2327,10 @@ function create_fragment$1(ctx) {
 
 function instance$1($$self, $$props, $$invalidate) {
 	let { tab = "filters" } = $$props;
-	let { lmap } = $$props;
-	let { gmap } = $$props;
-	leafletMap.update(n => lmap);
-	gmxMap.update(n => gmap);
+	let { leafletMap } = $$props;
+	let { gmxMap } = $$props;
+	setContext("leafletMap", leafletMap);
+	setContext("gmxMap", gmxMap);
 
 	let toggleBase = () => {
 		baseContVisible.update(n => !n);
@@ -2422,16 +2365,16 @@ function instance$1($$self, $$props, $$invalidate) {
 
 	$$self.$set = $$props => {
 		if ("tab" in $$props) $$invalidate(0, tab = $$props.tab);
-		if ("lmap" in $$props) $$invalidate(3, lmap = $$props.lmap);
-		if ("gmap" in $$props) $$invalidate(4, gmap = $$props.gmap);
+		if ("leafletMap" in $$props) $$invalidate(3, leafletMap = $$props.leafletMap);
+		if ("gmxMap" in $$props) $$invalidate(4, gmxMap = $$props.gmxMap);
 	};
 
 	return [
 		tab,
 		openSidebar,
 		toggleSidebar,
-		lmap,
-		gmap,
+		leafletMap,
+		gmxMap,
 		sidebar_num,
 		sidebar_visible,
 		toggleBase,
@@ -2442,7 +2385,7 @@ function instance$1($$self, $$props, $$invalidate) {
 class App extends SvelteComponent {
 	constructor(options) {
 		super();
-		init(this, options, instance$1, create_fragment$1, safe_not_equal, { tab: 0, lmap: 3, gmap: 4 });
+		init(this, options, instance$1, create_fragment$1, safe_not_equal, { tab: 0, leafletMap: 3, gmxMap: 4 });
 	}
 }
 

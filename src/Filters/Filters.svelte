@@ -57,40 +57,37 @@ const getColumnStat = (id) => {
 	
 	// return promiseArr;
 };
-let gmxMap = null; Store.gmxMap.subscribe(value => {
-	gmxMap = value;
-	gmxMap.layers.forEach((it) => {
-		let props = it.getGmxProperties(),
-			id = props.name,
-			meta = props.MetaProperties,
-			_gmx = gmxMap.layersByID[id]._gmx,
-			out = {
-				Title: props.title,
-				Description: props.description,
-				Copyright: props.Copyright,
-				IsRasterCatalog: false,
-				TemporalLayer: false,
-				filters: {}
-			};
-			
-		for (var k in meta) {
-			if (k === 'filter' && meta.filter.Value === 'true') {
-				out.id = id;
-				out.title = props.title;
-				out.attr = props.attributes.map((n) => '"' + n + '" as "' + n + '"').join(', ');
+gmxMap.layers.forEach((it) => {
+	let props = it.getGmxProperties(),
+		id = props.name,
+		meta = props.MetaProperties,
+		_gmx = gmxMap.layersByID[id]._gmx,
+		out = {
+			Title: props.title,
+			Description: props.description,
+			Copyright: props.Copyright,
+			IsRasterCatalog: false,
+			TemporalLayer: false,
+			filters: {}
+		};
+		
+	for (var k in meta) {
+		if (k === 'filter' && meta.filter.Value === 'true') {
+			out.id = id;
+			out.title = props.title;
+			out.attr = props.attributes.map((n) => '"' + n + '" as "' + n + '"').join(', ');
+		} else {
+			if (k in _gmx.tileAttributeIndexes) {
+				out.filters[k] = {title: meta[k].Value};
 			} else {
-				if (k in _gmx.tileAttributeIndexes) {
-					out.filters[k] = {title: meta[k].Value};
-				} else {
-					console.warn('В слое:', id, ' поле:', k, ' не существует!');
-				}
+				console.warn('В слое:', id, ' поле:', k, ' не существует!');
 			}
 		}
-		if (out.id) {
-			filterLayers[id] = out;
-		}
-		// console.log('gmxMap', it);
-	});
+	}
+	if (out.id) {
+		filterLayers[id] = out;
+	}
+	// console.log('gmxMap', it);
 });
 
 let currLayer = null;
