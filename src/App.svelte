@@ -1,15 +1,18 @@
 <script>
     import {onMount, setContext, getContext} from 'svelte';
-	import { leafletMap, gmxMap } from './stores.js';
+	// import { leafletMap, gmxMap } from './stores.js';
 	import Filters from './Filters/Filters.svelte';
 	import './global.css';
 	
 	export let tab = 'filters';
-	export let lmap;
-	export let gmap;
+	export let leafletMap;
+	export let gmxMap;
 
-	leafletMap.update(n => lmap);
-	gmxMap.update(n => gmap);
+	// leafletMap.update(n => lmap);
+	// gmxMap.update(n => gmap);
+
+	setContext('leafletMap', leafletMap);
+	setContext('gmxMap', gmxMap);
 
 	let toggleBase = () => {
 		baseContVisible.update(n => !n);

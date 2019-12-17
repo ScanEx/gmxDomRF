@@ -2,8 +2,11 @@
 import {onMount, beforeUpdate, setContext, getContext} from 'svelte';
 import * as Config from '../Config.js';
 import Requests from '../Requests.js';
-import * as Store from '../stores.js';
+// import * as Store from '../stores.js';
 // import Utils from '../Utils.js';
+
+const leafletMap = getContext('leafletMap');
+const gmxMap = getContext('gmxMap');
 
 // const stateStorage = Utils.getState();
 let changedParams = {test: 23};
@@ -131,10 +134,8 @@ const privaz = (ev, dObj) => {
 	}
 };
 
-let map = null; Store.leafletMap.subscribe(value => {
-	map = value;
-	map.gmxDrawing.contextmenu.insertItem({callback: privaz, text: 'Привязать к фильтру'}, 0, 'points');
-});
+let map = leafletMap;
+map.gmxDrawing.contextmenu.insertItem({callback: privaz, text: 'Привязать к фильтру'}, 0, 'points');
 
 let drawingChecked = false;
 const createDrawing = (ev) => {
@@ -184,8 +185,8 @@ const createExport = (ev) => {
 const createFilterLayer = (ev) => {
 	if (drawingChecked && !currDrawingObjArea) {
 		error = 'Необходимо нарисовать контур';
-		let dc = nsGmx.leafletMap.gmxControlsManager.get('drawing'),
-			ac = nsGmx.leafletMap.gmxControlsManager.get(dc.activeIcon || 'Polygon');
+		let dc = leafletMap.gmxControlsManager.get('drawing'),
+			ac = leafletMap.gmxControlsManager.get(dc.activeIcon || 'Polygon');
 		ac.setActive(false);
 		dc.setActiveIcon('', false);
 		// let cont = map.getContainer(),
