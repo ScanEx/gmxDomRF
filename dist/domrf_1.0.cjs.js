@@ -72,6 +72,9 @@ function get_current_component() {
         throw new Error(`Function called outside component initialization`);
     return current_component;
 }
+function onMount(fn) {
+    get_current_component().$$.on_mount.push(fn);
+}
 function setContext(key, context) {
     get_current_component().$$.context.set(key, context);
 }
@@ -1315,7 +1318,7 @@ function get_each_context_2(ctx, list, i) {
 	return child_ctx;
 }
 
-// (256:4) {#each Object.keys(filterLayers) as k}
+// (260:4) {#each Object.keys(filterLayers) as k}
 function create_each_block_2(ctx) {
 	let option;
 	let t_value = /*filterLayers*/ ctx[3][/*k*/ ctx[33]].title + "";
@@ -1348,7 +1351,7 @@ function create_each_block_2(ctx) {
 	};
 }
 
-// (263:1) {#if currLayer}
+// (267:1) {#if currLayer}
 function create_if_block_1(ctx) {
 	let t0;
 	let div1;
@@ -1431,7 +1434,7 @@ function create_if_block_1(ctx) {
 	};
 }
 
-// (264:2) {#if !drawingChecked}
+// (268:2) {#if !drawingChecked}
 function create_if_block_3(ctx) {
 	let each_1_anchor;
 	let each_value = Object.keys(/*currLayer*/ ctx[4].filters);
@@ -1487,7 +1490,7 @@ function create_if_block_3(ctx) {
 	};
 }
 
-// (270:4) {#if currLayer.filters[field].datalist}
+// (274:4) {#if currLayer.filters[field].datalist}
 function create_if_block_4(ctx) {
 	let datalist;
 	let datalist_id_value;
@@ -1550,7 +1553,7 @@ function create_if_block_4(ctx) {
 	};
 }
 
-// (272:6) {#each currLayer.filters[field].datalist as pt}
+// (276:6) {#each currLayer.filters[field].datalist as pt}
 function create_each_block_1(ctx) {
 	let option;
 	let option_value_value;
@@ -1577,7 +1580,7 @@ function create_each_block_1(ctx) {
 	};
 }
 
-// (265:3) {#each Object.keys(currLayer.filters) as field}
+// (269:3) {#each Object.keys(currLayer.filters) as field}
 function create_each_block(ctx) {
 	let div2;
 	let div0;
@@ -1655,7 +1658,7 @@ function create_each_block(ctx) {
 	};
 }
 
-// (284:4) {#if currDrawingObj}
+// (288:4) {#if currDrawingObj}
 function create_if_block_2(ctx) {
 	let span;
 	let t;
@@ -1679,7 +1682,7 @@ function create_if_block_2(ctx) {
 	};
 }
 
-// (299:0) {#if error}
+// (303:0) {#if error}
 function create_if_block(ctx) {
 	let div;
 	let span;
@@ -1896,12 +1899,12 @@ function create_fragment(ctx) {
 }
 
 function instance($$self, $$props, $$invalidate) {
-	const leafletMap = getContext("leafletMap");
-	const gmxMap = getContext("gmxMap");
 	let changedParams = { test: 23 };
 	let error = null;
 	let waitingIcon = null;
 	let content = null;
+	let leafletMap;
+	let gmxMap;
 	let filterLayers = {};
 
 	const getColumnStat = id => {
@@ -2127,6 +2130,11 @@ function instance($$self, $$props, $$invalidate) {
 				setHidden("Слой создан");
 				$$invalidate(9, filteredLayerID = res.content.properties.LayerID);
 			}
+		});
+
+		onMount(() => {
+			leafletMap = getContext("leafletMap");
+			gmxMap = getContext("gmxMap");
 		});
 	};
 

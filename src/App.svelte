@@ -12,7 +12,7 @@
 	// gmxMap.update(n => gmap);
 
 	setContext('leafletMap', leafletMap);
-	setContext('gmxMap', gmxMap);
+	setContext('gmxMap', gmxMap);	
 
 	let toggleBase = () => {
 		baseContVisible.update(n => !n);

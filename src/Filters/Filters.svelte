@@ -5,15 +5,14 @@ import Requests from '../Requests.js';
 // import * as Store from '../stores.js';
 // import Utils from '../Utils.js';
 
-const leafletMap = getContext('leafletMap');
-const gmxMap = getContext('gmxMap');
-
 // const stateStorage = Utils.getState();
 let changedParams = {test: 23};
 
 let error = null;
 let waitingIcon = null;
 let content = null;
+let leafletMap;
+let gmxMap;
 
 let filterLayers = {};
 const getColumnStat = (id) => {
@@ -244,6 +243,11 @@ const createFilterLayer = (ev) => {
 		}
 	});
 	//	console.log('createFilterLayer', exportButton, content, arr.join(' , ') );
+
+	onMount(() => {
+		leafletMap = getContext('leafletMap');
+		gmxMap = getContext('gmxMap');
+	});
 };
 </script>
 <svelte:window on:focus={setHidden} />
