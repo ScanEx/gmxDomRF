@@ -4,10 +4,12 @@
 	import Filters from './Filters/Filters.svelte';
 	import './global.css';
 	
-    export let tab = 'filters';
+	export let tab = 'filters';
+	export let lmap;
+	export let gmap;
 
-	leafletMap.update(n => nsGmx.leafletMap);
-	gmxMap.update(n => nsGmx.gmxMap);
+	leafletMap.update(n => lmap);
+	gmxMap.update(n => gmap);
 
 	let toggleBase = () => {
 		baseContVisible.update(n => !n);

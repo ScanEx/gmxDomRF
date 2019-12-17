@@ -2256,7 +2256,7 @@ function create_if_block$1(ctx) {
 	let current;
 
 	function filters_openSidebar_binding(value) {
-		/*filters_openSidebar_binding*/ ctx[6].call(null, value);
+		/*filters_openSidebar_binding*/ ctx[8].call(null, value);
 	}
 
 	let filters_props = {};
@@ -2384,8 +2384,10 @@ function create_fragment$1(ctx) {
 
 function instance$1($$self, $$props, $$invalidate) {
 	let { tab = "filters" } = $$props;
-	leafletMap.update(n => nsGmx.leafletMap);
-	gmxMap.update(n => nsGmx.gmxMap);
+	let { lmap } = $$props;
+	let { gmap } = $$props;
+	leafletMap.update(n => lmap);
+	gmxMap.update(n => gmap);
 
 	let toggleBase = () => {
 		baseContVisible.update(n => !n);
@@ -2420,12 +2422,16 @@ function instance$1($$self, $$props, $$invalidate) {
 
 	$$self.$set = $$props => {
 		if ("tab" in $$props) $$invalidate(0, tab = $$props.tab);
+		if ("lmap" in $$props) $$invalidate(3, lmap = $$props.lmap);
+		if ("gmap" in $$props) $$invalidate(4, gmap = $$props.gmap);
 	};
 
 	return [
 		tab,
 		openSidebar,
 		toggleSidebar,
+		lmap,
+		gmap,
 		sidebar_num,
 		sidebar_visible,
 		toggleBase,
@@ -2436,7 +2442,7 @@ function instance$1($$self, $$props, $$invalidate) {
 class App extends SvelteComponent {
 	constructor(options) {
 		super();
-		init(this, options, instance$1, create_fragment$1, safe_not_equal, { tab: 0 });
+		init(this, options, instance$1, create_fragment$1, safe_not_equal, { tab: 0, lmap: 3, gmap: 4 });
 	}
 }
 
