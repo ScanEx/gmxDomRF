@@ -11,8 +11,8 @@ let changedParams = {test: 23};
 let error = null;
 let waitingIcon = null;
 let content = null;
-let leafletMap;
-let gmxMap;
+export let leafletMap;
+export let gmxMap;
 
 let filterLayers = {};
 const getColumnStat = (id) => {
@@ -243,11 +243,6 @@ const createFilterLayer = (ev) => {
 		}
 	});
 	//	console.log('createFilterLayer', exportButton, content, arr.join(' , ') );
-
-	onMount(() => {
-		leafletMap = getContext('leafletMap');
-		gmxMap = getContext('gmxMap');
-	});
 };
 </script>
 <svelte:window on:focus={setHidden} />

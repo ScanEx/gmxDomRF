@@ -8,12 +8,6 @@
 	export let leafletMap;
 	export let gmxMap;
 
-	// leafletMap.update(n => lmap);
-	// gmxMap.update(n => gmap);
-
-	setContext('leafletMap', leafletMap);
-	setContext('gmxMap', gmxMap);	
-
 	let toggleBase = () => {
 		baseContVisible.update(n => !n);
 	};
@@ -45,6 +39,6 @@
 	</ul>
 
 {#if tab === 'filters'}
-	<Filters bind:openSidebar />
+	<Filters bind:gmxMap bind:leafletMap bind:openSidebar />
 {/if}
 </div>
