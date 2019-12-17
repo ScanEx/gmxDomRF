@@ -1,10 +1,9 @@
 <script>
-   import {onMount, beforeUpdate, setContext, getContext} from 'svelte';
-   
-	import * as Config from '../Config.js';
-	import Requests from '../Requests.js';
-	import * as Store from '../stores.js';
-	// import Utils from '../Utils.js';
+import {onMount, beforeUpdate, setContext, getContext} from 'svelte';
+import * as Config from '../Config.js';
+import Requests from '../Requests.js';
+import * as Store from '../stores.js';
+// import Utils from '../Utils.js';
 
 // const stateStorage = Utils.getState();
 let changedParams = {test: 23};
@@ -249,8 +248,7 @@ const createFilterLayer = (ev) => {
 	//	console.log('createFilterLayer', exportButton, content, arr.join(' , ') );
 };
 </script>
-			<svelte:window on:focus={setHidden} />
-
+<svelte:window on:focus={setHidden} />
 <div class="sidebar-opened" bind:this={content}>
 	<div class="row hidden" bind:this={waitingIcon}>
 		<div class="title">Выбор слоя</div>
@@ -264,35 +262,33 @@ const createFilterLayer = (ev) => {
 		</div>
 	</div>
 
-{#if currLayer}
- {#if !drawingChecked}
-
-	{#each Object.keys(currLayer.filters) as field}
-	<div class="row">
-		<div class="title">{currLayer.filters[field].title}</div>
-		<div class="input">
-			<input type="text" name="{field}" list="{field}" on:change="{clearData}" />
-		{#if currLayer.filters[field].datalist}
-			<datalist id="{field}">
-				{#each currLayer.filters[field].datalist as pt}
-				<option value="{pt.value}" />
-				{/each}
-			</datalist>
+	{#if currLayer}
+		{#if !drawingChecked}
+			{#each Object.keys(currLayer.filters) as field}
+			<div class="row">
+				<div class="title">{currLayer.filters[field].title}</div>
+				<div class="input">
+					<input type="text" name="{field}" list="{field}" on:change="{clearData}" />
+				{#if currLayer.filters[field].datalist}
+					<datalist id="{field}">
+						{#each currLayer.filters[field].datalist as pt}
+						<option value="{pt.value}" />
+						{/each}
+					</datalist>
+				{/if}
+				</div>
+			</div>
+			{/each}
 		{/if}
+		<div class="row">
+			<div class="checkbox">
+			<input type="checkbox" name="checkboxG4" on:change="{createDrawing}" bind:this={drawingButton} id="checkboxG4" class="css-checkbox2" title="Нарисовать или выбрать объект по правой кнопке на вершине"/><label for="checkboxG4" class="css-label2 radGroup1">Поиск федеральных объектов недвижимости по пересечению с контуром (создайте контур на Геопортале)</label>
+				{#if currDrawingObj}
+				<span class="currDrawingObjArea">{currDrawingObjArea}</span>
+				{/if}
+			</div>
 		</div>
-	</div>
-	{/each}
- {/if}
-
-	<div class="row">
-		<div class="checkbox">
-		   <input type="checkbox" name="checkboxG4" on:change="{createDrawing}" bind:this={drawingButton} id="checkboxG4" class="css-checkbox2" title="Нарисовать или выбрать объект по правой кнопке на вершине"/><label for="checkboxG4" class="css-label2 radGroup1">Поиск федеральных объектов недвижимости по пересечению с контуром (создайте контур на Геопортале)</label>
-			{#if currDrawingObj}
-			<span class="currDrawingObjArea">{currDrawingObjArea}</span>
-			{/if}
-		</div>
-	</div>
-{/if}
+	{/if}
 
 	<div class="bottom {currLayer ? '' : 'hidden'}">
 		<button class="button" on:click="{createFilterLayer}">Создать слой по фильтру</button>

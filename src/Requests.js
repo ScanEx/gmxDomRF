@@ -535,7 +535,6 @@ export default {
 	downloadLayer,
 	getColumnStat,
 	createFilterLayer,
-
 	addDataSource,
 	removeDataSource,
 	parseURLParams,

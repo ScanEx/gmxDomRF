@@ -17,4 +17,3 @@ export const worker = writable(0);
 export const kvItems = writable(0);
 export const delItems = writable(0);
 export const reportsCount = writable(0);
-

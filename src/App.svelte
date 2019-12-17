@@ -1,9 +1,8 @@
 <script>
     import {onMount, setContext, getContext} from 'svelte';
-	
 	import { leafletMap, gmxMap } from './stores.js';
-
-    import Filters from './Filters/Filters.svelte';
+	import Filters from './Filters/Filters.svelte';
+	import './global.css';
 	
     export let tab = 'filters';
 
