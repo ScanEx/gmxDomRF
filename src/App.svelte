@@ -2,6 +2,7 @@
     import {onMount, setContext, getContext} from 'svelte';
 	// import { leafletMap, gmxMap } from './stores.js';
 	import Filters from './Filters/Filters.svelte';
+	import Requests from '../Requests.js';
 	import './global.css';
 	
 	export let tab = 'filters';
@@ -30,6 +31,10 @@
 		sidebar_num = nm;
 	};
 
+	onMount(() => {
+		Requests.setSyncParams(syncParams);
+	});
+
 </script>
 
 <div class="domrf-plugin-container">
@@ -40,6 +45,6 @@
 	</ul>
 
 {#if tab === 'filters'}
-	<Filters syncParams="{syncParams}" bind:gmxMap bind:leafletMap bind:openSidebar />
+	<Filters bind:gmxMap bind:leafletMap bind:openSidebar />
 {/if}
 </div>

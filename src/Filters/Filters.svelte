@@ -13,7 +13,6 @@ let waitingIcon = null;
 let content = null;
 export let leafletMap;
 export let gmxMap;
-export let syncParams = {};
 
 let filterLayers = {};
 const getColumnStat = (id) => {
@@ -244,10 +243,6 @@ const createFilterLayer = (ev) => {
 		}
 	});
 	//	console.log('createFilterLayer', exportButton, content, arr.join(' , ') );
-
-	onMount(() => {
-		Requests.setSyncParams(syncParams);
-	});
 };
 </script>
 <svelte:window on:focus={setHidden} />
