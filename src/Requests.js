@@ -17,6 +17,10 @@ let _app = {},
 		credentials: 'include'
 	};
 
+function setSyncParams (value) {
+	syncParams = value;
+}
+
 const parseURLParams = (str) => {
 	let sp = new URLSearchParams(str || location.search),
 		out = {},
@@ -532,6 +536,7 @@ return;
 };
 
 export default {
+	setSyncParams,
 	downloadLayer,
 	getColumnStat,
 	createFilterLayer,

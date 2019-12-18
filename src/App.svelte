@@ -7,6 +7,7 @@
 	export let tab = 'filters';
 	export let leafletMap;
 	export let gmxMap;
+	export let syncParams = {};
 
 	let toggleBase = () => {
 		baseContVisible.update(n => !n);
@@ -39,6 +40,6 @@
 	</ul>
 
 {#if tab === 'filters'}
-	<Filters bind:gmxMap bind:leafletMap bind:openSidebar />
+	<Filters syncParams="{syncParams}" bind:gmxMap bind:leafletMap bind:openSidebar />
 {/if}
 </div>

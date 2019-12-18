@@ -67,6 +67,14 @@ let current_component;
 function set_current_component(component) {
     current_component = component;
 }
+function get_current_component() {
+    if (!current_component)
+        throw new Error(`Function called outside component initialization`);
+    return current_component;
+}
+function onMount(fn) {
+    get_current_component().$$.on_mount.push(fn);
+}
 
 const dirty_components = [];
 const binding_callbacks = [];
@@ -730,6 +738,10 @@ var str = self.location.origin || '',
   credentials: 'include'
 };
 
+function setSyncParams(value) {
+  syncParams = value;
+}
+
 var parseURLParams = function parseURLParams(str) {
   var sp = new URLSearchParams(str || location.search),
       out = {},
@@ -1273,6 +1285,7 @@ var downloadLayer = function downloadLayer(node, id) {
 };
 
 var Requests = {
+  setSyncParams: setSyncParams,
   downloadLayer: downloadLayer,
   getColumnStat: getColumnStat,
   createFilterLayer: createFilterLayer,
@@ -1288,26 +1301,26 @@ var Requests = {
 
 function get_each_context_1(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[30] = list[i];
+	child_ctx[31] = list[i];
 	return child_ctx;
 }
 
 function get_each_context(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[27] = list[i];
+	child_ctx[28] = list[i];
 	return child_ctx;
 }
 
 function get_each_context_2(ctx, list, i) {
 	const child_ctx = ctx.slice();
-	child_ctx[33] = list[i];
+	child_ctx[34] = list[i];
 	return child_ctx;
 }
 
-// (255:4) {#each Object.keys(filterLayers) as k}
+// (260:4) {#each Object.keys(filterLayers) as k}
 function create_each_block_2(ctx) {
 	let option;
-	let t_value = /*filterLayers*/ ctx[3][/*k*/ ctx[33]].title + "";
+	let t_value = /*filterLayers*/ ctx[3][/*k*/ ctx[34]].title + "";
 	let t;
 	let option_value_value;
 
@@ -1315,7 +1328,7 @@ function create_each_block_2(ctx) {
 		c() {
 			option = element("option");
 			t = text(t_value);
-			option.__value = option_value_value = /*filterLayers*/ ctx[3][/*k*/ ctx[33]].id;
+			option.__value = option_value_value = /*filterLayers*/ ctx[3][/*k*/ ctx[34]].id;
 			option.value = option.__value;
 		},
 		m(target, anchor) {
@@ -1323,9 +1336,9 @@ function create_each_block_2(ctx) {
 			append(option, t);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*filterLayers*/ 8 && t_value !== (t_value = /*filterLayers*/ ctx[3][/*k*/ ctx[33]].title + "")) set_data(t, t_value);
+			if (dirty[0] & /*filterLayers*/ 8 && t_value !== (t_value = /*filterLayers*/ ctx[3][/*k*/ ctx[34]].title + "")) set_data(t, t_value);
 
-			if (dirty[0] & /*filterLayers*/ 8 && option_value_value !== (option_value_value = /*filterLayers*/ ctx[3][/*k*/ ctx[33]].id)) {
+			if (dirty[0] & /*filterLayers*/ 8 && option_value_value !== (option_value_value = /*filterLayers*/ ctx[3][/*k*/ ctx[34]].id)) {
 				option.__value = option_value_value;
 			}
 
@@ -1337,7 +1350,7 @@ function create_each_block_2(ctx) {
 	};
 }
 
-// (262:1) {#if currLayer}
+// (267:1) {#if currLayer}
 function create_if_block_1(ctx) {
 	let t0;
 	let div1;
@@ -1377,7 +1390,7 @@ function create_if_block_1(ctx) {
 			insert(target, div1, anchor);
 			append(div1, div0);
 			append(div0, input);
-			/*input_binding*/ ctx[24](input);
+			/*input_binding*/ ctx[25](input);
 			append(div0, label);
 			append(div0, t2);
 			if (if_block1) if_block1.m(div0, null);
@@ -1413,14 +1426,14 @@ function create_if_block_1(ctx) {
 			if (if_block0) if_block0.d(detaching);
 			if (detaching) detach(t0);
 			if (detaching) detach(div1);
-			/*input_binding*/ ctx[24](null);
+			/*input_binding*/ ctx[25](null);
 			if (if_block1) if_block1.d();
 			dispose();
 		}
 	};
 }
 
-// (263:2) {#if !drawingChecked}
+// (268:2) {#if !drawingChecked}
 function create_if_block_3(ctx) {
 	let each_1_anchor;
 	let each_value = Object.keys(/*currLayer*/ ctx[4].filters);
@@ -1476,11 +1489,11 @@ function create_if_block_3(ctx) {
 	};
 }
 
-// (269:4) {#if currLayer.filters[field].datalist}
+// (274:4) {#if currLayer.filters[field].datalist}
 function create_if_block_4(ctx) {
 	let datalist;
 	let datalist_id_value;
-	let each_value_1 = /*currLayer*/ ctx[4].filters[/*field*/ ctx[27]].datalist;
+	let each_value_1 = /*currLayer*/ ctx[4].filters[/*field*/ ctx[28]].datalist;
 	let each_blocks = [];
 
 	for (let i = 0; i < each_value_1.length; i += 1) {
@@ -1495,7 +1508,7 @@ function create_if_block_4(ctx) {
 				each_blocks[i].c();
 			}
 
-			attr(datalist, "id", datalist_id_value = /*field*/ ctx[27]);
+			attr(datalist, "id", datalist_id_value = /*field*/ ctx[28]);
 		},
 		m(target, anchor) {
 			insert(target, datalist, anchor);
@@ -1506,7 +1519,7 @@ function create_if_block_4(ctx) {
 		},
 		p(ctx, dirty) {
 			if (dirty[0] & /*currLayer*/ 16) {
-				each_value_1 = /*currLayer*/ ctx[4].filters[/*field*/ ctx[27]].datalist;
+				each_value_1 = /*currLayer*/ ctx[4].filters[/*field*/ ctx[28]].datalist;
 				let i;
 
 				for (i = 0; i < each_value_1.length; i += 1) {
@@ -1528,7 +1541,7 @@ function create_if_block_4(ctx) {
 				each_blocks.length = each_value_1.length;
 			}
 
-			if (dirty[0] & /*currLayer*/ 16 && datalist_id_value !== (datalist_id_value = /*field*/ ctx[27])) {
+			if (dirty[0] & /*currLayer*/ 16 && datalist_id_value !== (datalist_id_value = /*field*/ ctx[28])) {
 				attr(datalist, "id", datalist_id_value);
 			}
 		},
@@ -1539,7 +1552,7 @@ function create_if_block_4(ctx) {
 	};
 }
 
-// (271:6) {#each currLayer.filters[field].datalist as pt}
+// (276:6) {#each currLayer.filters[field].datalist as pt}
 function create_each_block_1(ctx) {
 	let option;
 	let option_value_value;
@@ -1547,14 +1560,14 @@ function create_each_block_1(ctx) {
 	return {
 		c() {
 			option = element("option");
-			option.__value = option_value_value = /*pt*/ ctx[30].value;
+			option.__value = option_value_value = /*pt*/ ctx[31].value;
 			option.value = option.__value;
 		},
 		m(target, anchor) {
 			insert(target, option, anchor);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*currLayer*/ 16 && option_value_value !== (option_value_value = /*pt*/ ctx[30].value)) {
+			if (dirty[0] & /*currLayer*/ 16 && option_value_value !== (option_value_value = /*pt*/ ctx[31].value)) {
 				option.__value = option_value_value;
 			}
 
@@ -1566,11 +1579,11 @@ function create_each_block_1(ctx) {
 	};
 }
 
-// (264:3) {#each Object.keys(currLayer.filters) as field}
+// (269:3) {#each Object.keys(currLayer.filters) as field}
 function create_each_block(ctx) {
 	let div2;
 	let div0;
-	let t0_value = /*currLayer*/ ctx[4].filters[/*field*/ ctx[27]].title + "";
+	let t0_value = /*currLayer*/ ctx[4].filters[/*field*/ ctx[28]].title + "";
 	let t0;
 	let t1;
 	let div1;
@@ -1580,7 +1593,7 @@ function create_each_block(ctx) {
 	let t2;
 	let t3;
 	let dispose;
-	let if_block = /*currLayer*/ ctx[4].filters[/*field*/ ctx[27]].datalist && create_if_block_4(ctx);
+	let if_block = /*currLayer*/ ctx[4].filters[/*field*/ ctx[28]].datalist && create_if_block_4(ctx);
 
 	return {
 		c() {
@@ -1595,8 +1608,8 @@ function create_each_block(ctx) {
 			t3 = space();
 			attr(div0, "class", "title");
 			attr(input, "type", "text");
-			attr(input, "name", input_name_value = /*field*/ ctx[27]);
-			attr(input, "list", input_list_value = /*field*/ ctx[27]);
+			attr(input, "name", input_name_value = /*field*/ ctx[28]);
+			attr(input, "list", input_list_value = /*field*/ ctx[28]);
 			attr(div1, "class", "input");
 			attr(div2, "class", "row");
 			dispose = listen(input, "change", /*clearData*/ ctx[14]);
@@ -1613,17 +1626,17 @@ function create_each_block(ctx) {
 			append(div2, t3);
 		},
 		p(ctx, dirty) {
-			if (dirty[0] & /*currLayer*/ 16 && t0_value !== (t0_value = /*currLayer*/ ctx[4].filters[/*field*/ ctx[27]].title + "")) set_data(t0, t0_value);
+			if (dirty[0] & /*currLayer*/ 16 && t0_value !== (t0_value = /*currLayer*/ ctx[4].filters[/*field*/ ctx[28]].title + "")) set_data(t0, t0_value);
 
-			if (dirty[0] & /*currLayer*/ 16 && input_name_value !== (input_name_value = /*field*/ ctx[27])) {
+			if (dirty[0] & /*currLayer*/ 16 && input_name_value !== (input_name_value = /*field*/ ctx[28])) {
 				attr(input, "name", input_name_value);
 			}
 
-			if (dirty[0] & /*currLayer*/ 16 && input_list_value !== (input_list_value = /*field*/ ctx[27])) {
+			if (dirty[0] & /*currLayer*/ 16 && input_list_value !== (input_list_value = /*field*/ ctx[28])) {
 				attr(input, "list", input_list_value);
 			}
 
-			if (/*currLayer*/ ctx[4].filters[/*field*/ ctx[27]].datalist) {
+			if (/*currLayer*/ ctx[4].filters[/*field*/ ctx[28]].datalist) {
 				if (if_block) {
 					if_block.p(ctx, dirty);
 				} else {
@@ -1644,7 +1657,7 @@ function create_each_block(ctx) {
 	};
 }
 
-// (283:4) {#if currDrawingObj}
+// (288:4) {#if currDrawingObj}
 function create_if_block_2(ctx) {
 	let span;
 	let t;
@@ -1668,7 +1681,7 @@ function create_if_block_2(ctx) {
 	};
 }
 
-// (298:0) {#if error}
+// (303:0) {#if error}
 function create_if_block(ctx) {
 	let div;
 	let span;
@@ -1795,7 +1808,7 @@ function create_fragment(ctx) {
 				each_blocks[i].m(select, null);
 			}
 
-			/*div2_binding*/ ctx[23](div2);
+			/*div2_binding*/ ctx[24](div2);
 			append(div4, t2);
 			if (if_block0) if_block0.m(div4, null);
 			append(div4, t3);
@@ -1804,12 +1817,12 @@ function create_fragment(ctx) {
 			append(div3, t5);
 			append(div3, a);
 			append(a, iframe_1);
-			/*iframe_1_binding*/ ctx[25](iframe_1);
+			/*iframe_1_binding*/ ctx[26](iframe_1);
 			append(a, t6);
 			append(a, button1);
 			append(div4, t8);
 			if (if_block1) if_block1.m(div4, null);
-			/*div4_binding*/ ctx[26](div4);
+			/*div4_binding*/ ctx[27](div4);
 		},
 		p(ctx, dirty) {
 			if (dirty[0] & /*filterLayers*/ 8) {
@@ -1874,11 +1887,11 @@ function create_fragment(ctx) {
 		d(detaching) {
 			if (detaching) detach(div4);
 			destroy_each(each_blocks, detaching);
-			/*div2_binding*/ ctx[23](null);
+			/*div2_binding*/ ctx[24](null);
 			if (if_block0) if_block0.d();
-			/*iframe_1_binding*/ ctx[25](null);
+			/*iframe_1_binding*/ ctx[26](null);
 			if (if_block1) if_block1.d();
-			/*div4_binding*/ ctx[26](null);
+			/*div4_binding*/ ctx[27](null);
 			run_all(dispose);
 		}
 	};
@@ -1891,6 +1904,7 @@ function instance($$self, $$props, $$invalidate) {
 	let content = null;
 	let { leafletMap } = $$props;
 	let { gmxMap } = $$props;
+	let { syncParams = {} } = $$props;
 	let filterLayers = {};
 
 	const getColumnStat = id => {
@@ -2117,6 +2131,10 @@ function instance($$self, $$props, $$invalidate) {
 				$$invalidate(9, filteredLayerID = res.content.properties.LayerID);
 			}
 		});
+
+		onMount(() => {
+			Requests.setSyncParams(syncParams);
+		});
 	};
 
 	function div2_binding($$value) {
@@ -2146,6 +2164,7 @@ function instance($$self, $$props, $$invalidate) {
 	$$self.$set = $$props => {
 		if ("leafletMap" in $$props) $$invalidate(17, leafletMap = $$props.leafletMap);
 		if ("gmxMap" in $$props) $$invalidate(18, gmxMap = $$props.gmxMap);
+		if ("syncParams" in $$props) $$invalidate(19, syncParams = $$props.syncParams);
 	};
 
 	return [
@@ -2168,6 +2187,7 @@ function instance($$self, $$props, $$invalidate) {
 		createFilterLayer,
 		leafletMap,
 		gmxMap,
+		syncParams,
 		changedParams,
 		getColumnStat,
 		privaz,
@@ -2182,7 +2202,20 @@ function instance($$self, $$props, $$invalidate) {
 class Filters extends SvelteComponent {
 	constructor(options) {
 		super();
-		init(this, options, instance, create_fragment, safe_not_equal, { leafletMap: 17, gmxMap: 18 }, [-1, -1]);
+
+		init(
+			this,
+			options,
+			instance,
+			create_fragment,
+			safe_not_equal,
+			{
+				leafletMap: 17,
+				gmxMap: 18,
+				syncParams: 19
+			},
+			[-1, -1]
+		);
 	}
 }
 
@@ -2195,18 +2228,18 @@ function create_if_block$1(ctx) {
 	let current;
 
 	function filters_gmxMap_binding(value) {
-		/*filters_gmxMap_binding*/ ctx[8].call(null, value);
+		/*filters_gmxMap_binding*/ ctx[9].call(null, value);
 	}
 
 	function filters_leafletMap_binding(value_1) {
-		/*filters_leafletMap_binding*/ ctx[9].call(null, value_1);
+		/*filters_leafletMap_binding*/ ctx[10].call(null, value_1);
 	}
 
 	function filters_openSidebar_binding(value_2) {
-		/*filters_openSidebar_binding*/ ctx[10].call(null, value_2);
+		/*filters_openSidebar_binding*/ ctx[11].call(null, value_2);
 	}
 
-	let filters_props = {};
+	let filters_props = { syncParams: /*syncParams*/ ctx[3] };
 
 	if (/*gmxMap*/ ctx[1] !== void 0) {
 		filters_props.gmxMap = /*gmxMap*/ ctx[1];
@@ -2216,8 +2249,8 @@ function create_if_block$1(ctx) {
 		filters_props.leafletMap = /*leafletMap*/ ctx[0];
 	}
 
-	if (/*openSidebar*/ ctx[3] !== void 0) {
-		filters_props.openSidebar = /*openSidebar*/ ctx[3];
+	if (/*openSidebar*/ ctx[4] !== void 0) {
+		filters_props.openSidebar = /*openSidebar*/ ctx[4];
 	}
 
 	const filters = new Filters({ props: filters_props });
@@ -2235,6 +2268,7 @@ function create_if_block$1(ctx) {
 		},
 		p(ctx, dirty) {
 			const filters_changes = {};
+			if (dirty[0] & /*syncParams*/ 8) filters_changes.syncParams = /*syncParams*/ ctx[3];
 
 			if (!updating_gmxMap && dirty[0] & /*gmxMap*/ 2) {
 				updating_gmxMap = true;
@@ -2248,9 +2282,9 @@ function create_if_block$1(ctx) {
 				add_flush_callback(() => updating_leafletMap = false);
 			}
 
-			if (!updating_openSidebar && dirty[0] & /*openSidebar*/ 8) {
+			if (!updating_openSidebar && dirty[0] & /*openSidebar*/ 16) {
 				updating_openSidebar = true;
-				filters_changes.openSidebar = /*openSidebar*/ ctx[3];
+				filters_changes.openSidebar = /*openSidebar*/ ctx[4];
 				add_flush_callback(() => updating_openSidebar = false);
 			}
 
@@ -2297,7 +2331,7 @@ function create_fragment$1(ctx) {
 			attr(li, "class", "nav-item");
 			attr(ul, "class", "nav nav-tabs");
 			attr(div, "class", "domrf-plugin-container");
-			dispose = listen(a, "click", /*toggleSidebar*/ ctx[4]);
+			dispose = listen(a, "click", /*toggleSidebar*/ ctx[5]);
 		},
 		m(target, anchor) {
 			insert(target, div, anchor);
@@ -2355,6 +2389,7 @@ function instance$1($$self, $$props, $$invalidate) {
 	let { tab = "filters" } = $$props;
 	let { leafletMap } = $$props;
 	let { gmxMap } = $$props;
+	let { syncParams = {} } = $$props;
 
 	let toggleBase = () => {
 		baseContVisible.update(n => !n);
@@ -2394,19 +2429,21 @@ function instance$1($$self, $$props, $$invalidate) {
 
 	function filters_openSidebar_binding(value_2) {
 		openSidebar = value_2;
-		$$invalidate(3, openSidebar);
+		$$invalidate(4, openSidebar);
 	}
 
 	$$self.$set = $$props => {
 		if ("tab" in $$props) $$invalidate(2, tab = $$props.tab);
 		if ("leafletMap" in $$props) $$invalidate(0, leafletMap = $$props.leafletMap);
 		if ("gmxMap" in $$props) $$invalidate(1, gmxMap = $$props.gmxMap);
+		if ("syncParams" in $$props) $$invalidate(3, syncParams = $$props.syncParams);
 	};
 
 	return [
 		leafletMap,
 		gmxMap,
 		tab,
+		syncParams,
 		openSidebar,
 		toggleSidebar,
 		sidebar_num,
@@ -2421,7 +2458,13 @@ function instance$1($$self, $$props, $$invalidate) {
 class App extends SvelteComponent {
 	constructor(options) {
 		super();
-		init(this, options, instance$1, create_fragment$1, safe_not_equal, { tab: 2, leafletMap: 0, gmxMap: 1 });
+
+		init(this, options, instance$1, create_fragment$1, safe_not_equal, {
+			tab: 2,
+			leafletMap: 0,
+			gmxMap: 1,
+			syncParams: 3
+		});
 	}
 }
 
